@@ -1,16 +1,16 @@
-# Tauri + Vue 3 + TypeScript
+# Tauri-Geant4
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+> 高性能、安全、便携的核物理探测器模拟仿真平台
 
-## Recommended IDE Setup
+这是使用[Tauri](https://tauri.app/)框架开发的以[Geant4](https://geant4.web.cern.ch/)模拟为基础的无源效率刻度软件，使用[Vue3](https://vuejs.org/)+[Vite](https://cn.vitejs.dev/)搭建前端，[Rust](https://www.rust-lang.org/)编写后台算法，通过服务端的Geant4模拟计算进行无源效率刻度。
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+- :bulb:服务端仿真，Tauri实现跨平台编译部署
+- :zap:Rust高性能线性代数计算库实现快速本地运算
+- :package:交互式探测器模型展示，直观调节探测器结构
+- :electric_plug:多种模拟API接口，实现自定义粒子源、探测器结构与材料
+- :clubs:提供预设置探测器模版，灵活调节与保存模版
+- :book:内置自定义核素数据库，便捷查询全能峰能量值计算效率
+- :part_alternation_mark:模拟能谱展示、能谱展宽、查看拟合曲线
+- :triangular_ruler:线性、多项式、二次式多种方法拟合刻度曲线可选
+- :clipboard:计算结果、探测器模型参数保存，历史记录查看
 
-## Type Support For `.vue` Imports in TS
-
-Since TypeScript cannot handle type information for `.vue` imports, they are shimmed to be a generic Vue component type by default. In most cases this is fine if you don't really care about component prop types outside of templates. However, if you wish to get actual prop types in `.vue` imports (for example to get props validation when using manual `h(...)` calls), you can enable Volar's Take Over mode by following these steps:
-
-1. Run `Extensions: Show Built-in Extensions` from VS Code's command palette, look for `TypeScript and JavaScript Language Features`, then right click and select `Disable (Workspace)`. By default, Take Over mode will enable itself if the default TypeScript extension is disabled.
-2. Reload the VS Code window by running `Developer: Reload Window` from the command palette.
-
-You can learn more about Take Over mode [here](https://github.com/johnsoncodehk/volar/discussions/471).
