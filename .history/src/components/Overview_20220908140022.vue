@@ -1,0 +1,223 @@
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import { invoke } from "@tauri-apps/api/tauri";
+import { fetch } from "@tauri-apps/api/http";
+
+import * as echarts from "echarts";
+
+type EChartsOption = echarts.EChartsOption;
+
+const greetMsg = ref("");
+const name = ref("");
+
+const table1Column = ["序号", "能量(keV)", "效率(?)", "拟合(?)", "Delta(?)"];
+
+const tableContent = ref([
+  [1, 2, 3, 4, 5],
+  [1, 2, 3, 4, 5],
+  [1, 2, 3, 4, 5],
+]);
+const energyEfficieny = ref([
+  { energy: 1.166, efficiency: 0.001339 },
+  { energy: 1.324, efficiency: 0.001378 },
+]);
+
+async function greet() {
+  greetMsg.value = await invoke("greet", { name: name.value });
+}
+
+onMounted(async () => {
+  var chartDom = document.getElementById("chart-container")!;
+  var myChart = echarts.init(chartDom);
+  var option: EChartsOption;
+
+  const response: any = await fetch("http://localhost:8080/spec", {
+    method: "GET",
+  });
+  const dataStr: string = response.data.data;
+  const energyStr: string = response.data.energy;
+
+  const dataArry = dataStr.substring(1, dataStr.length - 1).split(",");
+  const energyArry = energyStr.substring(1, energyStr.length - 1).split(",");
+  dataArry[0] = "0";
+  const data = generateData(dataArry, energyArry);
+
+  option = {
+    title: {
+      text: "能谱",
+      left: 10,
+    },
+    toolbox: {
+      feature: {
+        dataZoom: {
+          yAxisIndex: false,
+        },
+        saveAsImage: {
+          pixelRatio: 2,
+        },
+      },
+    },
+    tooltip: {
+      trigger: "axis",
+      axisPointer: {
+        type: "shadow",
+      },
+    },
+    grid: {
+      bottom: 90,
+    },
+    dataZoom: [
+      {
+        type: "inside",
+      },
+      {
+        type: "slider",
+      },
+    ],
+    xAxis: {
+      data: data.categoryData,
+      silent: false,
+      splitLine: {
+        show: false,
+      },
+      splitArea: {
+        show: false,
+      },
+      show: false,
+    },
+    yAxis: {
+      splitArea: {
+        show: false,
+      },
+    },
+    series: [
+      {
+        type: "bar",
+        data: data.valueData,
+        // Set `large` for large data amount
+        large: true,
+        barWidth: "100%",
+        barCategoryGap: "0%",
+      },
+    ],
+  };
+
+  option && myChart.setOption(option);
+
+  function generateData(data: string[], energy: string[]) {
+    const categoryData = [];
+    const valueData = [];
+
+    for (let i = 0; i < data.length; i++) {
+      categoryData.push(energy[i]);
+      valueData.push(data[i]);
+    }
+
+    return {
+      categoryData: categoryData,
+      valueData: valueData,
+    };
+  }
+});
+
+let i = 20;
+const addData = () => {
+  i -= 1;
+  tableContent.value.push([1, 2, 3, 4, 5]);
+  if (i < 0) {
+    return;
+  }
+  setTimeout(() => {
+    addData();
+  }, 1000);
+};
+</script>
+
+<template>
+  <!-- <div class="card">
+    <input id="greet-input" v-model="name" placeholder="输入..." />
+    <button type="button" @click="greet()">Greet</button>
+  </div> -->
+
+  <!-- <p>{{ greetMsg }}</p> -->
+  <!-- table1 -->
+  <div class="h-1/2 overflow-x-auto px-10 py-6">
+    <div class="flex items-center gap-3 pb-5">
+      <p class="text-lg font-bold">效率计算结果表</p>
+
+      <div class="dropdown">
+        <label tabindex="0" class="btn btn-sm m-1">效率刻度</label>
+        <div
+          tabindex="0"
+          class="card dropdown-content card-compact w-96 bg-base-100 p-2 shadow"
+        >
+          <div class="card-body">
+            <div class="form-control" v-for="item in energyEfficieny">
+              <div class="input-group">
+                <input
+                  type="text"
+                  :value="item.efficiency"
+                  placeholder="能量点对应效率"
+                  class="input input-bordered w-full"
+                />
+                <button class="btn btn-square">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-6 w-6"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            </div>
+            <div class="btn">刻度</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <table class="table-compact table w-full">
+      <thead>
+        <tr>
+          <th v-for="item in table1Column">
+            {{ item }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in tableContent">
+          <th v-for="data in item">
+            <input
+              type="text"
+              placeholder="Type here"
+              :value="data"
+              class="input input-ghost max-w-xs focus:bg-base-100 focus:outline-none"
+            />
+          </th>
+        </tr>
+      </tbody>
+      <!-- <tfoot>
+        <tr>
+          <th v-for="item in table1Column">
+            {{ item }}
+          </th>
+        </tr>
+      </tfoot> -->
+    </table>
+  </div>
+  <!-- Chart -->
+  <div
+    class="flex h-1/2 items-center justify-center overflow-x-visible px-10 py-6"
+  >
+    <div id="chart-container" class="h-full w-full"></div>
+  </div>
+</template>
