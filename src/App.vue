@@ -1,7 +1,13 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+let shown = $ref(false);
+//设置延迟遮盖启动错乱
+setTimeout(() => {
+  shown = true;
+}, 130);
+</script>
 
 <template>
-  <router-view></router-view>
+  <div v-show="shown">
+    <RouterView />
+  </div>
 </template>
-
-<style scoped></style>

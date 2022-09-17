@@ -1,9 +1,48 @@
 import { defineConfig } from "vite";
+import Unocss from "unocss/vite";
+import {
+  presetUno,
+  presetAttributify,
+  presetIcons,
+  presetWebFonts,
+} from "unocss";
+import { presetExtra } from "unocss-preset-extra";
 import vue from "@vitejs/plugin-vue";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue({ reactivityTransform: true }),
+    Unocss({
+      presets: [
+        presetUno(),
+        presetAttributify(),
+        presetExtra(),
+        presetIcons(),
+        presetWebFonts({
+          provider: "google", // default provider
+          fonts: {
+            // these will extend the default theme
+            sans: "Roboto",
+            mono: ["Fira Code", "Fira Mono:400,700"],
+            // custom ones
+            lobster: "Lobster",
+            lato: [
+              {
+                name: "Lato",
+                weights: ["400", "700"],
+                italic: true,
+              },
+              {
+                name: "sans-serif",
+                provider: "none",
+              },
+            ],
+          },
+        }),
+      ],
+    }),
+  ],
 
   // Vite optons tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // prevent vite from obscuring rust errors
@@ -12,13 +51,6 @@ export default defineConfig({
   server: {
     port: 1420,
     strictPort: true,
-    proxy: {
-      "/api": {
-        target: "http://localhost:8080", //实际请求地址
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
-      },
-    },
   },
   // to make use of `TAURI_DEBUG` and other env variables
   // https://tauri.studio/v1/api/config#buildconfig.beforedevcommand

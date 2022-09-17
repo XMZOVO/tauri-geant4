@@ -3,27 +3,27 @@ import { createRouter, createWebHistory } from "vue-router";
 const routes = [
   {
     path: "/",
-    component: () => import("../components/MainWindow.vue"),
+    component: () => import("../pages/Main.vue"),
     children: [
       {
         path: "",
-        component: () => import("../components/Home.vue"),
+        component: () => import("../pages/Home.vue"),
       },
       {
         path: "Setting",
-        component: () => import("../components/Setting.vue"),
+        component: () => import("../pages/Settings.vue"),
       },
       {
         path: "Results",
-        component: () => import("../components/Results.vue"),
+        component: () => import("../pages/Results.vue"),
       },
       {
         path: "Overview",
-        component: () => import("../components/Overview.vue"),
+        component: () => import("../pages/Overview.vue"),
       },
       {
         path: "Test",
-        component: () => import("../components/Test.vue"),
+        component: () => import("../pages/Test.vue"),
       },
     ],
   },
