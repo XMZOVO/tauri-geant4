@@ -1,12 +1,9 @@
 import { defineConfig } from "vite";
 import Unocss from "unocss/vite";
-import {
-  presetUno,
-  presetAttributify,
-  presetIcons,
-  presetWebFonts,
-} from "unocss";
+import { presetAttributify, presetUno } from "unocss";
 import { presetExtra } from "unocss-preset-extra";
+import { presetIcons } from "@unocss/preset-icons";
+
 import vue from "@vitejs/plugin-vue";
 
 // https://vitejs.dev/config/
@@ -14,33 +11,7 @@ export default defineConfig({
   plugins: [
     vue({ reactivityTransform: true }),
     Unocss({
-      presets: [
-        presetUno(),
-        presetAttributify(),
-        presetExtra(),
-        presetIcons(),
-        presetWebFonts({
-          provider: "google", // default provider
-          fonts: {
-            // these will extend the default theme
-            sans: "Roboto",
-            mono: ["Fira Code", "Fira Mono:400,700"],
-            // custom ones
-            lobster: "Lobster",
-            lato: [
-              {
-                name: "Lato",
-                weights: ["400", "700"],
-                italic: true,
-              },
-              {
-                name: "sans-serif",
-                provider: "none",
-              },
-            ],
-          },
-        }),
-      ],
+      presets: [presetUno(), presetAttributify(), presetExtra(), presetIcons()],
     }),
   ],
 

@@ -12,7 +12,10 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "all": true,
+      "fs": {
+        "scope": ["$DOWNLOAD/*"]
+      }
     },
     "bundle": {
       "active": true,
@@ -57,9 +60,10 @@
       {
         "fullscreen": false,
         "height": 900,
-        "resizable": true,
-        "title": "TauriG4",
-        "width": 1440
+        "resizable": false,
+        "title": "",
+        "width": 1440,
+        "theme":"Dark"
       }
     ]
   }

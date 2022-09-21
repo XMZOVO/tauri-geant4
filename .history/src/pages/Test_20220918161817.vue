@@ -1,0 +1,90 @@
+<template>
+  <!-- <div class="flex flex-col text-center justify-center h-full">[Test]</div> -->
+  <div ref="ThreeDom" class="w-full h-full"></div>
+</template>
+<script setup lang="ts">
+import * as THREE from "three";
+import { onMounted, onUnmounted, ref } from "vue";
+
+import { renderer, scene } from "../core/renderer";
+import { fpsGraph, gui } from "../core/gui";
+import { camera } from "../core/camera";
+import { controls } from "../core/orbit-control";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
+//three.js的MTL加载器会把mtl文件的Tr属性的值(n)解析为透明度(1-n)
+import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader";
+//这个版本的VRML加载器无法解析Anchor节点,更换github新版
+import { VRMLLoader } from "three/examples/jsm/loaders/VRMLLoader";
+
+const ThreeDom = ref(null) as any;
+
+let dirLight: THREE.DirectionalLight;
+let ambient: THREE.AmbientLight;
+let timer: number;
+let loader = new OBJLoader();
+let mtlLoader = new MTLLoader();
+let vrmlLoader = new VRMLLoader();
+
+const loadLight = () => {
+  dirLight = new THREE.DirectionalLight(0xffffff, 1);
+  dirLight.position.set(10, 10, 0);
+  scene.add(dirLight);
+
+  ambient = new THREE.AmbientLight(0xffffff, 0.3);
+  scene.add(ambient);
+};
+
+const loadObjAsset = (asset: string) => {
+  mtlLoader.load("src/assets/test111.mtl", (materials) => {
+    materials.preload();
+    for (const t in materials.materials) {
+      materials.materials[t].transparent = true;
+      materials.materials[t].opacity = 0.6;
+    }
+    loader.setMaterials(materials);
+
+    loader.load("src/assets/" + asset + ".obj", function (object) {
+      scene.add(object);
+      controls.reset();
+    });
+  });
+};
+
+const loadVRMLAsset = (asset: string) => {
+  vrmlLoader.load("src/assets/" + asset + ".wrl", (object) => {
+    scene.add(object);
+  });
+};
+
+const animate = () => {
+  fpsGraph.begin();
+  // controls.update();
+  renderer.render(scene, camera);
+  fpsGraph.end();
+  timer = requestAnimationFrame(animate);
+};
+
+onMounted(() => {
+  gui.hidden = false;
+  ThreeDom._value.appendChild(renderer.domElement);
+});
+
+onUnmounted(() => {
+  gui.hidden = true;
+  gui.children.forEach((element) => {
+    gui.children.pop();
+  });
+  scene.children.forEach((element) => {
+    scene.children.pop();
+  });
+  renderer.dispose();
+  dirLight.dispose();
+  ambient.dispose();
+  cancelAnimationFrame(timer);
+});
+
+loadLight();
+loadObjAsset("test111");
+// loadVRMLAsset("g4_01");
+animate();
+</script>

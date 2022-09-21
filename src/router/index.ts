@@ -21,10 +21,10 @@ const routes = [
         path: "Overview",
         component: () => import("../pages/Overview.vue"),
       },
-      {
-        path: "Test",
-        component: () => import("../pages/Test.vue"),
-      },
+      // {
+      //   path: "Test",
+      //   component: () => import("../pages/Test.vue"),
+      // },
     ],
   },
 ];

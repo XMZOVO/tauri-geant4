@@ -1,3 +1,5 @@
 <template>
-  <div class="flex flex-col text-center justify-center h-full">[Result]</div>
+  <div class="flex flex-col text-light-800 text-center justify-center h-full">
+    [Result]
+  </div>
 </template>

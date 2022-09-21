@@ -1,47 +1,48 @@
 <template>
-  <div class="flex h-screen bg-light-50">
+  <div class="flex h-screen bg-dark-800 font-sans">
     <!-- 导航栏 -->
     <div
-      class="flex flex-col w-52 justify-between p-3 items-center border-r border-gray-200"
+      class="flex flex-col py-3 w-52 justify-between items-center bg-dark-200"
     >
-      <div class="w-full flex flex-col items-center">
+      <div class="items-center w-full">
         <!-- App标题 -->
         <div
           :class="[
-            'flex items-center gap-3 pb-5 cursor-default',
+            'flex items-center justify-center gap-3 pb-5 cursor-default text-light-800',
             activeTitle ? 'animate-rubber-band animate-duration-500' : '',
           ]"
           @click="titleClick"
         >
           <div class="i-carbon-chart-bubble-packed w-10 h-10"></div>
-          <div class="select-none text-2xl font-mono">TauriG4</div>
+          <div class="select-none text-2xl">TauriG4</div>
         </div>
         <!-- 导航 -->
         <div
-          class="flex flex-col gap-3 w-full"
+          class="flex flex-col gap-3 w-full ml-3 text-light-800"
           v-for="(item, index) in navigatioBarItems"
         >
           <div
             :class="[
               activeBarItem == index
-                ? 'bg-black animate-bounce-in animate-duration-500'
-                : 'hover:bg-gray-200',
-              'py-3 px-3 flex items-center gap-3 justify-start cursor-pointer rounded-xl transition duration-300 ',
+                ? 'bg-dark-800 animate-bounce-in animate-duration-500 '
+                : '',
+              ' py-3 px-3 flex items-center gap-3 justify-start cursor-pointer rounded-xl rounded-r-none transition duration-300 ',
             ]"
             @click="navToPage(index)"
           >
+            <div class="min-w-1 bg-white h-full scale-y-0">1</div>
             <div
               :class="[
                 'w-5 h-5',
                 item.icon,
                 activeBarItem == index
-                  ? 'opacity-100 text-white '
-                  : 'opacity-60 text-black',
+                  ? 'opacity-100 text-light-800'
+                  : 'opacity-60 text-light-800',
               ]"
             ></div>
             <div
               :class="[
-                'font-sans',
+                '',
                 activeBarItem == index
                   ? 'opacity-100 text-white'
                   : 'opacity-60',
@@ -53,16 +54,16 @@
         </div>
       </div>
       <!-- 用户 -->
-      <div class="w-full text-center">
+      <div class="text-center">
         <!-- 用户 -->
         <div
           v-show="isLogin"
-          class="my-3 flex items-center justify-between space-x-3 px-2"
+          class="flex items-center justify-between space-x-3 px-2 pt-3 border-t border-dark-800 text-light-800 bg-dark-200"
           :class="{
             ' animate-bounce-out-left animate-duration-1000': activeLogout,
           }"
         >
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
             <div class="w-10 rounded-full relative">
               <img
                 src="../assets/zhouzhou.jpeg"
@@ -70,8 +71,8 @@
               />
             </div>
             <div class="flex flex-col text-start">
-              <div class="text-sm font-bold font-sans">Roy</div>
-              <div class="text-sm text-base-content font-sans opacity-60">
+              <div class="text-sm font-bold">Roy</div>
+              <div class="text-xs text-base-content opacity-60">
                 Admin Account
               </div>
             </div>
@@ -85,22 +86,26 @@
     </div>
     <!-- 内容栏 -->
     <div class="w-full overflow-hidden">
-      <router-view v-slot="{ Component }">
-        <transition
+      <router-view></router-view>
+      <!-- <router-view v-slot="{ Component }"> -->
+      <!-- <transition
           class="animate-duration-300"
           enter-active-class="animate-slide-in-down"
           leave-active-class="animate-slide-out-down"
           mode="out-in"
-        >
-          <component :is="Component" />
-        </transition>
-      </router-view>
+        > -->
+      <!-- <component :is="Component" /> -->
+      <!-- </transition> -->
+      <!-- </router-view> -->
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { onMounted } from "vue";
 import { useRouter } from "vue-router";
+import gsap from "gsap";
+
 const router = useRouter();
 let activeBarItem = $ref(0);
 let activeTitle = $ref(false);
@@ -127,12 +132,32 @@ const navigatioBarItems = $ref([
     icon: "i-carbon-settings",
     path: "/Setting",
   },
-  {
-    name: "Test",
-    icon: "i-carbon-3d-mpr-toggle",
-    path: "/Test",
-  },
+  // {
+  //   name: "Test",
+  //   icon: "i-carbon-3d-mpr-toggle",
+  //   path: "/Test",
+  // },
 ]);
+
+onMounted(() => {
+  // const items = document.querySelectorAll(".item");
+  // console.log(items);
+  // gsap.defaults({ duration: 0.3 });
+  // items.forEach(function (item, index) {
+  //   const tl = gsap
+  //     .timeline({ paused: true })
+  //     .to(item.querySelector(".bar1")?.querySelector(".bar2")!, {
+  //       scaleY: 1,
+  //       transformOrigin: "bottom",
+  //     });
+  //   item.addEventListener("mouseenter", () => {
+  //     console.log(1);
+  //     tl.play();
+  //   });
+  //   item.addEventListener("mouseleave", () => tl.reverse());
+  // });
+});
+
 const navToPage = (index: number) => {
   router.push(navigatioBarItems[index].path);
   activeBarItem = index;

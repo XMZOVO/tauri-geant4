@@ -1,0 +1,51 @@
+# wavefront mtl file written by the visualization toolkit
+
+newmtl mtl1
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 1
+
+illum 3
+newmtl mtl403
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 1
+
+illum 3
+newmtl mtl1203
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 1
+
+illum 3
+newmtl mtl1605
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 1
+
+illum 3
+newmtl mtl2405
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 1
+
+illum 3
+newmtl mtl2807
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 1
+
+illum 3
+newmtl mtl3209
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 1
+
+illum 3
