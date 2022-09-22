@@ -1,19 +1,10 @@
 import { defineConfig } from "vite";
-import Unocss from "unocss/vite";
-import { presetAttributify, presetUno } from "unocss";
-import { presetExtra } from "unocss-preset-extra";
-import { presetIcons } from "@unocss/preset-icons";
 
 import vue from "@vitejs/plugin-vue";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    vue({ reactivityTransform: true }),
-    Unocss({
-      presets: [presetUno(), presetAttributify(), presetExtra(), presetIcons()],
-    }),
-  ],
+  plugins: [vue({ reactivityTransform: true })],
 
   // Vite optons tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // prevent vite from obscuring rust errors

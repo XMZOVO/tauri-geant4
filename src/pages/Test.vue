@@ -200,7 +200,7 @@ const animate = () => {
 
 onMounted(() => {
   gui.pane.hidden = false;
-  ThreeDom._value.appendChild(renderer.domElement);
+  ThreeDom.value.appendChild(renderer.domElement);
   updateRenderer();
   //更新摄像机aspect
   camera.aspect = elSizeInfo.width / elSizeInfo.height;

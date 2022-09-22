@@ -3,11 +3,11 @@ let show = $ref(false);
 
 setTimeout(() => {
   show = true;
-}, 300);
+}, 250);
 </script>
 
 <template>
-  <div v-show="show">
+  <div>
     <RouterView />
   </div>
 </template>

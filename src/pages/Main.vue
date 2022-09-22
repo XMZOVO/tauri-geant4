@@ -1,15 +1,12 @@
 <template>
   <div class="flex h-screen bg-dark-800 font-sans">
     <!-- 导航栏 -->
-    <div
-      class="flex flex-col py-3 w-52 justify-between items-center bg-dark-200"
-    >
+    <div class="flex flex-col py-3 w-52 justify-between items-center bg-card">
       <div class="items-center w-full">
         <!-- App标题 -->
         <div
           :class="[
-            'flex items-center justify-center gap-3 pb-5 cursor-default text-light-800',
-            activeTitle ? 'animate-rubber-band animate-duration-500' : '',
+            'flex items-center justify-center gap-3 pb-5 cursor-default text-txt',
           ]"
           @click="titleClick"
         >
@@ -17,38 +14,40 @@
           <div class="select-none text-2xl">TauriG4</div>
         </div>
         <!-- 导航 -->
-        <div
-          class="flex flex-col gap-3 w-full ml-3 text-light-800"
-          v-for="(item, index) in navigatioBarItems"
-        >
+        <div class="relative">
+          <!-- item背景 -->
           <div
-            :class="[
-              activeBarItem == index
-                ? 'bg-dark-800 animate-bounce-in animate-duration-500 '
-                : '',
-              ' py-3 px-3 flex items-center gap-3 justify-start cursor-pointer rounded-xl rounded-r-none transition duration-300 ',
-            ]"
-            @click="navToPage(index)"
+            class="item-bg absolute h-1/4 top-0 rounded-xl rounded-r-none z-0 bg-back w-11/12 right-0 scale-x-100"
+          ></div>
+          <div
+            class="item flex flex-col gap-3 w-full ml-3 text-txt relative overflow-hidden z-50"
+            v-for="(item, index) in navigatioBarItems"
           >
-            <div class="min-w-1 bg-white h-full scale-y-0">1</div>
             <div
               :class="[
-                'w-5 h-5',
-                item.icon,
-                activeBarItem == index
-                  ? 'opacity-100 text-light-800'
-                  : 'opacity-60 text-light-800',
+                'py-3 px-3 flex items-center gap-3 justify-start cursor-pointer rounded-xl bg-opacity-0 rounded-r-none',
               ]"
-            ></div>
-            <div
-              :class="[
-                '',
-                activeBarItem == index
-                  ? 'opacity-100 text-white'
-                  : 'opacity-60',
-              ]"
+              @click="navToPage(index)"
             >
-              {{ item.name }}
+              <div
+                :class="[
+                  'w-5 h-5 transition-opacity duration-500',
+                  item.icon,
+                  activeBarItem == index
+                    ? 'opacity-100 text-txt'
+                    : 'opacity-60 text-txt',
+                ]"
+              ></div>
+              <div
+                :class="[
+                  'transition-opacity duration-500',
+                  activeBarItem == index
+                    ? 'opacity-100 text-txt'
+                    : 'opacity-60 text-txt',
+                ]"
+              >
+                {{ item.name }}
+              </div>
             </div>
           </div>
         </div>
@@ -58,10 +57,7 @@
         <!-- 用户 -->
         <div
           v-show="isLogin"
-          class="flex items-center justify-between space-x-3 px-2 pt-3 border-t border-dark-800 text-light-800 bg-dark-200"
-          :class="{
-            ' animate-bounce-out-left animate-duration-1000': activeLogout,
-          }"
+          class="flex items-center justify-between space-x-3 px-2 pt-3 border-t border-back text-txt"
         >
           <div class="flex items-center gap-2">
             <div class="w-10 rounded-full relative">
@@ -139,26 +135,42 @@ const navigatioBarItems = $ref([
   // },
 ]);
 
+interface itemTL {
+  name: any;
+  tl: any;
+}
+
 onMounted(() => {
-  // const items = document.querySelectorAll(".item");
-  // console.log(items);
-  // gsap.defaults({ duration: 0.3 });
+  // const items = document.querySelector(".item-bg");
+  const tlList: any[] = [];
+
+  gsap.defaults({ duration: 0.3, ease: "power2.inOut" });
+
   // items.forEach(function (item, index) {
   //   const tl = gsap
   //     .timeline({ paused: true })
-  //     .to(item.querySelector(".bar1")?.querySelector(".bar2")!, {
-  //       scaleY: 1,
-  //       transformOrigin: "bottom",
+  //     .to(item.querySelector(".item-bg"), {
+  //       scaleX: 1,
+  //       transformOrigin: "100%",
   //     });
-  //   item.addEventListener("mouseenter", () => {
-  //     console.log(1);
-  //     tl.play();
+  //   tlList.push({ name: item, tl: tl });
+  //   item.addEventListener("mousedown", () => {
+  //     tlList.forEach((ot) => {
+  //       if (ot.name != item) {
+  //         ot.tl.reverse();
+  //       } else {
+  //         tl.play();
+  //       }
+  //     });
   //   });
-  //   item.addEventListener("mouseleave", () => tl.reverse());
+  //   // item.addEventListener("mouseleave", () => tl.reverse());
   // });
 });
 
 const navToPage = (index: number) => {
+  const itembg = document.querySelector(".item-bg");
+  gsap.to(itembg, { y: index.toString() + "00%" });
+
   router.push(navigatioBarItems[index].path);
   activeBarItem = index;
 };

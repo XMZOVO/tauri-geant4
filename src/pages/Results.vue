@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col text-light-800 text-center justify-center h-full">
+  <div class="flex text-txt flex-col text-center justify-center h-full bg-back">
     [Result]
   </div>
 </template>
