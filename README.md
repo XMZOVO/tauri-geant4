@@ -1,16 +1,16 @@
 # Tauri-Geant4
 
-> 高性能、安全、便携的核物理探测器模拟仿真平台
+> High-performance, safe and portable nuclear physics detector simulation platform.
 
-这是使用[Tauri](https://tauri.app/)框架开发的以[Geant4](https://geant4.web.cern.ch/)模拟为基础的无源效率刻度软件，使用[Vue3](https://vuejs.org/)+[Vite](https://cn.vitejs.dev/)搭建前端，[Rust](https://www.rust-lang.org/)编写后台算法，通过服务端的Geant4模拟计算进行无源效率刻度。
+This is a passive efficiency calibration software based on [Geant4](https://geant4.web.cern.ch/) simulation developed using [Tauri](https://tauri.app/) framework. It uses [Vue3](https://cn.vitejs.dev/) to build the front-end, [Rust](https://www.rust-lang.org/) writes the back-end algorithm, and performs passive efficiency calibration through Geant4 simulation calculation on the server.
 
-- :bulb:服务端仿真，Tauri实现跨平台编译部署
-- :zap:Rust高性能线性代数计算库实现快速本地运算
-- :package:交互式探测器模型展示，直观调节探测器结构
-- :electric_plug:多种模拟API接口，实现自定义粒子源、探测器结构与材料
-- :clubs:提供预设置探测器模版，灵活调节与保存模版
-- :book:内置自定义核素数据库，便捷查询全能峰能量值计算效率
-- :part_alternation_mark:模拟能谱展示、能谱展宽、查看拟合曲线
-- :triangular_ruler:线性、多项式、二次式多种方法拟合刻度曲线可选
-- :clipboard:计算结果、探测器模型参数保存，历史记录查看
+- :bulb:Server-side simulation, Tauri realizes cross-platform compilation and deployment.
+- :zap:Rust high-performance linear algebra computing library for fast local operations.
+- :package:Interactive detector model display, intuitive adjustment of detector structure.
+- :electric_plug:Multiple analog API interfaces to implement custom particle source, detector structure and material.
+- :clubs:Provide preset detector templates, flexibly adjust and save templates.
+- :book:Built-in custom nuclide database, easy to query the calculation efficiency of the omnipotent peak energy value.
+- :part_alternation_mark:Simulate energy spectrum display, energy spectrum expansion, view fitting curve.
+- :triangular_ruler:Linear, polynomial, quadratic methods to fit scale curve optional.
+- :clipboard:Save calculation results, detector model parameters, and view historical records
 
