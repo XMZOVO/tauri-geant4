@@ -3,9 +3,14 @@ import {
   AxesHelper,
   Color,
   DirectionalLight,
+  DirectionalLightHelper,
   Group,
+  Mesh,
+  MeshBasicMaterial,
+  MeshPhongMaterial,
   PerspectiveCamera,
   Scene,
+  Vector3,
   WebGLRenderer,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
@@ -24,11 +29,22 @@ export default class Base3D {
   scene!: Scene;
   controls!: OrbitControls;
   timer!: number;
-  detector!: Group;
+  detector: { [name: string]: Mesh } = {};
+  detectorGroup!: Group;
+  highlightMaterial = new MeshBasicMaterial({
+    wireframe: true,
+    color: 0x00ff00,
+  });
+  originalMaterial = new MeshPhongMaterial({
+    color: 0xffffff, //delete randomColor
+    transparent: true,
+    opacity: 0.6, //set opacity to 0.6
+    wireframe: false,
+  });
+  axesHelper!: AxesHelper;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    // this.init();
   }
 
   async init() {
@@ -55,7 +71,7 @@ export default class Base3D {
       0.1,
       1e10
     );
-    this.camera.position.set(30000, 30000, 30000);
+    this.camera.position.set(100, 100, 100);
   }
 
   initRenderer() {
@@ -76,8 +92,13 @@ export default class Base3D {
     // renderer.toneMapping = ACESFilmicToneMapping;
     // renderer.toneMappingExposure = 1;
 
-    const axesHelper = new AxesHelper(10000);
-    this.scene.add(axesHelper);
+    this.axesHelper = new AxesHelper(100);
+    this.axesHelper.setColors(
+      new Color("#E06C75"),
+      new Color("#71C48E"),
+      new Color("#61AFEF")
+    );
+    this.scene.add(this.axesHelper);
   }
 
   initControls() {
@@ -111,16 +132,19 @@ export default class Base3D {
 
   async initModel() {
     const gdmlLoader = new GDMLLoader();
-    const object = await gdmlLoader.loadAsync(
-      "src/assets/model/gdml/Par02FullDetector.gdml"
+    const object: Group = await gdmlLoader.loadAsync(
+      "src/assets/model/gdml/wtest.gdml"
     );
     this.scene.add(object);
-    this.detector = object;
+    this.detectorGroup = object;
+    object.children.forEach((element) => {
+      this.detector[element.name] = element as Mesh;
+    });
+    // this.detector = object.children as Mesh[];
   }
 
   initLight() {
     const dirLight = new DirectionalLight(0xffffff, 1);
-    dirLight.position.set(0, 50, 0);
     this.scene.add(dirLight);
 
     const ambient = new AmbientLight(0xffffff, 0.3);
@@ -131,6 +155,35 @@ export default class Base3D {
     if (this.renderer && this.scene && this.camera) {
       this.renderer.render(this.scene, this.camera);
     }
-    requestAnimationFrame(this.initAnimateTick.bind(this));
+    this.timer = requestAnimationFrame(this.initAnimateTick.bind(this));
+  }
+
+  highlightSelect(name: string) {
+    this.detector[name].material = this.highlightMaterial;
+    for (const item in this.detector) {
+      if (item != name) this.detector[item].material = this.originalMaterial;
+    }
+  }
+
+  visibleChange(name: string) {
+    if (name != "world")
+      this.detector[name].visible = !this.detector[name].visible;
+    else {
+      for (const item in this.detector) {
+        this.detector[item].visible = !this.detector["world"].visible;
+      }
+    }
+  }
+
+  axeVisibleChange(flag: boolean) {
+    this.axesHelper.visible = flag;
+  }
+
+  worldVisibleChange(flag: boolean) {
+    this.detector["world"].visible = flag;
+  }
+
+  positionChange(position: Vector3) {
+    this.detectorGroup.position.copy(position);
   }
 }

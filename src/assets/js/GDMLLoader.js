@@ -647,7 +647,7 @@ class GDMLLoader extends Loader {
 
                 var geometry;
 
-                var material = new MeshPhongMaterial({
+                var material = new MeshStandardMaterial({
                     color: 0xffffff, //delete randomColor
                     transparent: true,
                     opacity: 0.6, //set opacity to 0.6

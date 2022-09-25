@@ -1,7 +1,9 @@
 <template>
-  <div class="flex h-screen bg-dark-800 font-sans">
+  <div class="flex h-screen bg-dark-800 font-sans bg-back">
     <!-- 导航栏 -->
-    <div class="flex flex-col py-3 w-52 justify-between items-center bg-card">
+    <div
+      class="nav-bar flex flex-col py-3 w-52 justify-between items-center bg-card select-none"
+    >
       <div class="items-center w-full">
         <!-- App标题 -->
         <div
@@ -57,12 +59,12 @@
         <!-- 用户 -->
         <div
           v-show="isLogin"
-          class="flex items-center justify-between space-x-3 px-2 pt-3 border-t border-back text-txt"
+          class="flex items-center justify-between space-x-3 px-2 pt-3 border-t border-stripDark text-txt"
         >
           <div class="flex items-center gap-2">
             <div class="w-10 rounded-full relative">
               <img
-                src="../assets/zhouzhou.jpeg"
+                src="../assets/avatar_male.png"
                 class="w-10 h-10 rounded-full"
               />
             </div>
@@ -144,7 +146,9 @@ onMounted(() => {
   // const items = document.querySelector(".item-bg");
   const tlList: any[] = [];
 
-  gsap.defaults({ duration: 0.3, ease: "power2.inOut" });
+  gsap.defaults({ duration: 0.5 });
+
+  gsap.from(".nav-bar", { x: "-200%", delay: 0.3 });
 
   // items.forEach(function (item, index) {
   //   const tl = gsap
@@ -169,7 +173,7 @@ onMounted(() => {
 
 const navToPage = (index: number) => {
   const itembg = document.querySelector(".item-bg");
-  gsap.to(itembg, { y: index.toString() + "00%" });
+  gsap.to(itembg, { y: index.toString() + "00%", duration: 0.3 });
 
   router.push(navigatioBarItems[index].path);
   activeBarItem = index;

@@ -10,20 +10,25 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@amcharts/amcharts5": "^5.2.23",
     "@tauri-apps/api": "^1.1.0",
     "@types/three": "^0.144.0",
     "@vueuse/core": "^9.2.0",
+    "daisyui": "^2.31.0",
     "gsap": "^3.11.1",
     "pinia": "^2.0.22",
     "three": "^0.144.0",
     "threejs-gdml-loader": "^1.0.2",
     "threejs-vrml-loader": "^1.0.1",
     "tweakpane": "^3.1.0",
+    "uplot": "^1.6.22",
+    "uplot-vue": "^1.1.1",
     "vue": "^3.2.37",
     "vue-router": "4"
   },
   "devDependencies": {
     "@iconify/json": "^2.1.110",
+    "@tailwindcss/forms": "^0.5.3",
     "@tauri-apps/cli": "^1.1.0",
     "@tweakpane/core": "^1.1.0",
     "@tweakpane/plugin-essentials": "^0.1.5",
