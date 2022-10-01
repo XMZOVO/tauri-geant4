@@ -7,18 +7,12 @@
     "withGlobalTauri": false
   },
   "package": {
-    "productName": "TauriG4",
+    "productName": "tauri-g4",
     "version": "0.0.0"
   },
   "tauri": {
     "allowlist": {
-      "all": true,
-      "fs": {
-        "scope": ["$DOWNLOAD/*"]
-      },
-      "http": {
-        "scope": ["http://localhost:8080/*"]
-      }
+      "all": true
     },
     "bundle": {
       "active": true,
@@ -35,7 +29,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.zhongpeiying.www",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -63,10 +57,11 @@
       {
         "fullscreen": false,
         "height": 900,
-        "resizable": false,
+        "resizable": true,
         "title": "",
         "width": 1440,
         "theme":"Dark"
+
       }
     ]
   }

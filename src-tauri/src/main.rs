@@ -2,6 +2,7 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+
 extern crate nalgebra as na;
 use na::{Matrix2, Matrix2x1};
 
@@ -37,10 +38,9 @@ fn eff_cal_line(a1: f32, a2: f32, energy_list: Vec<f32>) -> Vec<f32> {
     eff_vec
 }
 
-
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet,linear_fit,eff_cal_line])
+        .invoke_handler(tauri::generate_handler![greet, linear_fit, eff_cal_line])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

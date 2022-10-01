@@ -1,5 +1,5 @@
+<script setup lang="ts"></script>
+
 <template>
-  <div class="flex text-txt flex-col text-center justify-center h-full bg-back">
-    [Result]
-  </div>
+  <div flex w-full>[results]</div>
 </template>

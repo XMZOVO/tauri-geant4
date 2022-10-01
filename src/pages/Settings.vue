@@ -1,5 +1,5 @@
+<script setup lang="ts"></script>
+
 <template>
-  <div class="flex flex-col text-txt text-center justify-center h-full bg-back">
-    [Settings]
-  </div>
+  <div flex w-full>[settings]</div>
 </template>

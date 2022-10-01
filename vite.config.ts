@@ -1,10 +1,23 @@
+import path from "path";
 import { defineConfig } from "vite";
-
 import vue from "@vitejs/plugin-vue";
+import Pages from "vite-plugin-pages";
+import Unocss from "unocss/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue({ reactivityTransform: true })],
+  resolve: {
+    alias: {
+      "~/": `${path.resolve(__dirname, "src")}/`,
+    },
+  },
+  plugins: [
+    vue({
+      reactivityTransform: true,
+    }),
+    Pages(),
+    Unocss(),
+  ],
 
   // Vite optons tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // prevent vite from obscuring rust errors
