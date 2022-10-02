@@ -1,28 +1,40 @@
 <script setup lang="ts">
-import { useRouter } from "vue-router";
-import gsap from "gsap";
-import Collapse from "./components/Collapse.vue";
-import { onMounted, ref } from "vue";
+import { useRouter } from 'vue-router'
+import gsap from 'gsap'
+import { onMounted, ref } from 'vue'
+import Collapse from './components/Collapse.vue'
 
-const navTab = ref(null);
-const navTabTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } });
-const router = useRouter();
+const navTab = ref(null)
+const navTabTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
+const navBarTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
+const router = useRouter()
 const navBarItem = $ref([
-  { name: "主页", path: "/", icon: "i-carbon-home" },
-  { name: "概览", path: "/overview", icon: "i-carbon-chart-rose" },
-  { name: "结果", path: "/results", icon: "i-carbon-result" },
-  { name: "设置", path: "/settings", icon: "i-carbon-settings" },
-]);
+  { name: '主页', path: '/', icon: 'i-carbon-home' },
+  { name: '概览', path: '/overview', icon: 'i-carbon-chart-rose' },
+  { name: '结果', path: '/results', icon: 'i-carbon-result' },
+  { name: '设置', path: '/settings', icon: 'i-carbon-settings' },
+])
 
 onMounted(() => {
-  gsap.from(".navBar", { x: "-100%", duration: 0.5 });
-});
+  navBarTl.from('.navBar', { x: '-100%', duration: 0.5, delay: 0.1 })
+  navBarTl.play()
+})
 
 const navToPage = async (index: number) => {
-  navTabTl.to(navTab.value, { y: index * 100 + "%", duration: 0.2 });
-  await navTabTl.play();
-  await router.push(navBarItem[index].path);
-};
+  navTabTl.to(navTab.value, { y: `${index * 100}%`, duration: 0.2 })
+  await navTabTl.play()
+  await router.push(navBarItem[index].path)
+}
+
+const executeSimulate = () => {
+  navBarTl.reverse()
+}
+
+const simulationComplete = () => {
+  navBarTl.play()
+  navTabTl.to(navTab.value, { y: '100%', duration: 0.2 })
+  navTabTl.play()
+}
 </script>
 
 <template>
@@ -40,13 +52,16 @@ const navToPage = async (index: number) => {
     >
       <!-- App标题 -->
       <div flex items-center justify-center gap-3 p="b-5">
-        <div i-carbon-chart-bubble-packed w-10 h-10></div>
-        <div text-2xl>TauriG4</div>
+        <div i-carbon-chart-bubble-packed w-10 h-10 />
+        <div text-2xl>
+          TauriG4
+        </div>
       </div>
       <!-- 导航栏 -->
       <div flex flex-col w-full relative overflow-hidden>
         <!-- 指示条 -->
         <div
+          ref="navTab"
           absolute
           w-full
           ml-3
@@ -54,10 +69,10 @@ const navToPage = async (index: number) => {
           top-0
           rounded="xl r-none"
           bg-back
-          ref="navTab"
-        ></div>
+        />
         <div
           v-for="(item, index) in navBarItem"
+          :key="item.name"
           flex
           items-center
           gap-3
@@ -66,18 +81,22 @@ const navToPage = async (index: number) => {
           z-50
           @click="navToPage(index)"
         >
-          <div :class="item.icon" w-6 h-6></div>
+          <div :class="item.icon" w-6 h-6 />
           <div>{{ item.name }}</div>
         </div>
       </div>
       <!-- 占位 -->
-      <div flex flex-grow></div>
+      <div flex flex-grow />
       <!-- 用户 -->
       <div flex items-center gap-3 p="x-2 t-3" border="t back" w-full>
-        <img w-10 h-10 rounded-full src="/assets/avatar_male.png" />
+        <img w-10 h-10 rounded-full src="/assets/avatar_male.png">
         <div flex flex-col>
-          <div text-sm font-bold>Roy</div>
-          <div text-xs op50 whitespace-nowrap>Admin Account</div>
+          <div text-sm font-bold>
+            Roy
+          </div>
+          <div text-xs op50 whitespace-nowrap>
+            Admin Account
+          </div>
         </div>
         <div
           i-carbon-logout
@@ -87,10 +106,10 @@ const navToPage = async (index: number) => {
           hover:op100
           op50
           cursor-pointer
-        ></div>
+        />
       </div>
     </div>
     <!-- 路由 -->
-    <RouterView overflow-hidden />
+    <RouterView @execute-simulate="executeSimulate" @simulation-complete="simulationComplete" />
   </main>
 </template>

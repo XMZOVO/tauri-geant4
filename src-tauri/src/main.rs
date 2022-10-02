@@ -38,9 +38,17 @@ fn eff_cal_line(a1: f32, a2: f32, energy_list: Vec<f32>) -> Vec<f32> {
     eff_vec
 }
 
+#[tauri::command]
+async fn load_local_file(uid_path: String) -> Result<String, String> {
+    if std::path::Path::new(uid_path.as_str()).metadata().is_ok() {
+        return Ok(uid_path);
+    }
+    Ok("".into())
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, linear_fit, eff_cal_line])
+        .invoke_handler(tauri::generate_handler![greet, linear_fit, eff_cal_line,load_local_file])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -12,7 +12,14 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "all": true,
+      "http": {
+        "scope": ["http://localhost:8080/*"]
+      },
+      "fs": {
+        "all": true,
+        "scope": ["$APP/*","$RESOURCE/*"]
+      }
     },
     "bundle": {
       "active": true,
@@ -60,7 +67,7 @@
         "resizable": true,
         "title": "",
         "width": 1440,
-        "theme":"Dark"
+        "theme": "Dark"
 
       }
     ]

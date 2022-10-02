@@ -1,5 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div flex w-full>[results]</div>
+  <div flex w-full>
+    [results]
+  </div>
 </template>

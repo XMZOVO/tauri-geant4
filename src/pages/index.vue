@@ -1,102 +1,157 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import Base3D from "~/three/Base3D";
-import gsap from "gsap";
-import { Vector3 } from "three";
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import gsap from 'gsap'
+import { Vector3 } from 'three'
+import { fetch } from '@tauri-apps/api/http'
+import Base3D from '~/three/Base3D'
+import { useStore } from '~/stores/store'
 
-const navTab = ref(null);
-const navTabTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } });
-const cardTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } });
-const router = useRouter();
-const ThreeDom = ref() as any;
+const emits = defineEmits(['executeSimulate', 'simulationComplete'])
+const store = useStore()
+const navTab = ref(null)
+const navTabTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
+const cardTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
+const router = useRouter()
+const ThreeDom = ref() as any
+const gdmlStructureList = $ref<GdmlStructure[]>([])
 const cardTabBarItem = $ref([
-  { name: "探测器几何", icon: "i-carbon-3d-mpr-toggle", path: "/" },
-  { name: "粒子枪", icon: "i-carbon-webhook", path: "/particle" },
-  { name: "其他", icon: "i-carbon-lightning", path: "/execute" },
-]);
+  { name: '探测器几何', icon: 'i-carbon-3d-mpr-toggle', path: '/' },
+  { name: '粒子枪', icon: 'i-carbon-webhook', path: '/particle' },
+  { name: '其他', icon: 'i-carbon-lightning', path: '/execute' },
+])
 
-let strucListSelect = $ref(-1);
-let base3D: Base3D;
-let gdmlStructureList = $ref<GdmlStructure[]>([]);
+let strucListSelect = $ref(-1)
+let base3D: Base3D
 
 interface GdmlStructure {
-  name: string;
-  visible: boolean;
+  name: string
+  visible: boolean
 }
 onMounted(async () => {
-  cardTl.from(".card", { x: "100%", stagger: 0.1, delay: 0.3 });
-  cardTl.play();
+  cardTl.from('.card', { x: '100%', stagger: 0.1, delay: 0.3 })
+  cardTl.play()
   // 初始化three
-  base3D = new Base3D(ThreeDom.value);
-  await base3D.init();
-  gsap.from(".canvas", { opacity: 0, duration: 1 });
+  base3D = new Base3D(ThreeDom.value)
+  await base3D.init()
+  gsap.from('.canvas', { opacity: 0, duration: 1 })
   // 填充gdml结构列表
   for (const item in base3D.detector) {
-    if (item == "world")
-      gdmlStructureList.unshift({ name: item, visible: true });
-    else gdmlStructureList.push({ name: item, visible: true });
+    if (item === 'world')
+      gdmlStructureList.unshift({ name: item, visible: true })
+    else gdmlStructureList.push({ name: item, visible: true })
   }
-  await nextTick();
-  gsap.from(".structureListItem", { x: "200%", stagger: 0.05 });
-});
+  await nextTick()
+  gsap.from('.structureListItem', { x: '200%', stagger: 0.05 })
+})
 
 onUnmounted(() => {
   // dispose threejs资源
-  base3D.renderer.renderLists.dispose();
-  base3D.renderer.dispose();
-  base3D.renderer.forceContextLoss();
-  while (base3D.scene.children.length > 0) {
-    base3D.scene.remove(base3D.scene.children[0]);
-  }
-  cancelAnimationFrame(base3D.timer);
-});
+  base3D.renderer.renderLists.dispose()
+  base3D.renderer.dispose()
+  base3D.renderer.forceContextLoss()
+  while (base3D.scene.children.length > 0)
+    base3D.scene.remove(base3D.scene.children[0])
+
+  cancelAnimationFrame(base3D.timer)
+})
 
 const selecListItem = (index: number) => {
-  strucListSelect = index;
-  base3D.highlightSelect(gdmlStructureList[index].name);
-};
+  strucListSelect = index
+  base3D.highlightSelect(gdmlStructureList[index].name)
+}
 
 const structVisibleChange = (item: GdmlStructure) => {
-  base3D.visibleChange(item.name);
-  item.visible = !item.visible;
-};
+  base3D.visibleChange(item.name)
+  item.visible = !item.visible
+}
 
 const navToAction = (index: number) => {
   navTabTl
-    .to(navTab.value, { scaleX: 0, transformOrigin: "right" })
+    .to(navTab.value, { scaleX: 0, transformOrigin: 'right' })
     .to(navTab.value, {
-      y: index * 100 + "%",
+      y: `${index * 100}%`,
       duration: 0,
     })
-    .to(navTab.value, { scaleX: 1, transformOrigin: "right" }, "<");
-  navTabTl.play();
-  router.push(cardTabBarItem[index].path);
-};
+    .to(navTab.value, { scaleX: 1, transformOrigin: 'right' }, '<')
+  navTabTl.play()
+  router.push(cardTabBarItem[index].path)
+}
+
+const importGdml = async (path: string) => {
+  await base3D.importGdml(path)
+  gdmlStructureList.splice(0, gdmlStructureList.length)
+  for (const item in base3D.detector) {
+    if (item === 'world')
+      gdmlStructureList.unshift({ name: item, visible: true })
+    else gdmlStructureList.push({ name: item, visible: true })
+  }
+  await nextTick()
+  gsap.from('.structureListItem', { x: '200%', stagger: 0.05 })
+}
 
 const positionChange = (pos: { x: number; y: number; z: number }) => {
-  base3D.positionChange(new Vector3(pos.x, pos.y, pos.z));
-};
+  base3D.positionChange(new Vector3(pos.x, pos.y, pos.z))
+}
 
 const opacityChange = (opacity: number) => {
-  base3D.opacityChange(opacity);
-};
+  base3D.opacityChange(opacity)
+}
 
 const axisVisibleChange = (visible: boolean) => {
-  base3D.axisVisibleChange(visible);
-};
+  base3D.axisVisibleChange(visible)
+}
 
 const worldVisibleChange = (visible: boolean) => {
-  base3D.worldVisibleChange(visible);
-};
+  base3D.worldVisibleChange(visible)
+}
 
 const dirLightIntensityChange = (intensity: number) => {
-  base3D.dirLightIntensityChange(intensity);
-};
+  base3D.dirLightIntensityChange(intensity)
+}
 
 const dirLightPosChange = (pos: { x: number; y: number; z: number }) => {
-  base3D.dirLightPosChange(new Vector3(pos.x, pos.y, pos.z));
-};
+  base3D.dirLightPosChange(new Vector3(pos.x, pos.y, pos.z))
+}
+
+const executeSimulate = async () => {
+  cardTl.reverse()
+  emits('executeSimulate')
+  base3D.autoRotateCamera(true)
+  if (store.detectorTemplate === 0) {
+    await fetch('http://localhost:8080/g4', {
+      method: 'POST',
+      query: {
+        ch: store.naIDetector.cylinderH.toString(),
+        cr: store.naIDetector.cylinderR.toString(),
+        rtt: store.naIDetector.reflectTT.toString(),
+        num: store.totalParticles.toString(),
+        posX: store.particlePos.x.toString(),
+        posY: store.particlePos.y.toString(),
+        posZ: store.particlePos.z.toString(),
+      },
+    })
+  }
+  // 处理本次模拟信息统计
+  if (store.detectorTemplate === -1)
+    store.lastSimulationInfo.detectorParams = null
+
+  else
+    store.lastSimulationInfo.detectorParams = store.naIDetector
+
+  store.lastSimulationInfo.detectorTemplate = store.detectorTemplate
+  store.lastSimulationInfo.source = store.source
+  store.lastSimulationInfo.totalParticles = store.totalParticles
+  store.lastSimulationInfo.totalTime = '00:01:00'
+  store.lastSimulationInfo.particlePos = [
+    store.particlePos.x,
+    store.particlePos.y,
+    store.particlePos.z,
+  ]
+
+  emits('simulationComplete')
+  router.push({ path: '/overview', query: { fetchData: 1 } })
+}
 </script>
 
 <template>
@@ -104,7 +159,7 @@ const dirLightPosChange = (pos: { x: number; y: number; z: number }) => {
     <!-- 中部 -->
     <div flex-grow>
       <!-- 渲染窗口 -->
-      <canvas ref="ThreeDom" class="canvas"></canvas>
+      <canvas ref="ThreeDom" class="canvas" />
     </div>
     <!-- 右侧 -->
     <div w-60 flex flex-col>
@@ -114,6 +169,7 @@ const dirLightPosChange = (pos: { x: number; y: number; z: number }) => {
           <div grid grid-cols-1 text-xs>
             <div
               v-for="(item, index) in gdmlStructureList"
+              :key="item.name"
               px-2
               flex
               items-center
@@ -121,26 +177,25 @@ const dirLightPosChange = (pos: { x: number; y: number; z: number }) => {
               py-1
               class="structureListItem"
               :class="[
-                index == strucListSelect
+                index === strucListSelect
                   ? 'bg-blue'
                   : index % 2
-                  ? `bg-card-strip`
-                  : `bg-card-stripDark`,
+                    ? `bg-card-strip`
+                    : `bg-card-stripDark`,
               ]"
             >
               <div
                 flex-grow
                 flex
                 h-full
-                :class="index == 0 ? `pl-2` : `pl-6`"
+                :class="index === 0 ? `pl-2` : `pl-6`"
                 @click="selecListItem(index)"
               >
-                <div i-carbon-caret-right></div>
+                <div i-carbon-caret-right />
                 <div>{{ item.name.slice(0, 10) }}</div>
               </div>
 
               <div
-                @click="structVisibleChange(item)"
                 h-3
                 w-3
                 :class="[
@@ -148,7 +203,8 @@ const dirLightPosChange = (pos: { x: number; y: number; z: number }) => {
                     ? 'i-teenyicons-eye-solid'
                     : 'i-teenyicons-eye-closed-solid',
                 ]"
-              ></div>
+                @click="structVisibleChange(item)"
+              />
             </div>
           </div>
         </div>
@@ -167,34 +223,37 @@ const dirLightPosChange = (pos: { x: number; y: number; z: number }) => {
                 absolute
                 w-8
                 rounded="r-none md"
-              ></div>
+              />
               <div
-                p-1
                 v-for="(item, index) in cardTabBarItem"
+                :key="item.name"
+                p-1
                 @click="navToAction(index)"
               >
                 <div
                   :class="[
                     item.icon,
                     {
-                      'text-yellow': index == 0,
-                      'text-red': index == 1,
-                      'text-green': index == 2,
+                      'text-yellow': index === 0,
+                      'text-red': index === 1,
+                      'text-green': index === 2,
                     },
                   ]"
-                ></div>
+                />
               </div>
             </div>
           </div>
           <!-- tab内容页 -->
           <div flex-grow p-2 overflow-auto>
             <RouterView
-              @positionChange="positionChange"
-              @opacityChange="opacityChange"
-              @axisVisibleChange="axisVisibleChange"
-              @worldVisibleChange="worldVisibleChange"
-              @dirLightIntensityChange="dirLightIntensityChange"
-              @dirLightPosChange="dirLightPosChange"
+              @position-change="positionChange"
+              @opacity-change="opacityChange"
+              @axis-visible-change="axisVisibleChange"
+              @world-visible-change="worldVisibleChange"
+              @dir-light-intensity-change="dirLightIntensityChange"
+              @dir-light-pos-change="dirLightPosChange"
+              @execute-simulate="executeSimulate"
+              @import-gdml="importGdml"
             />
           </div>
         </div>
