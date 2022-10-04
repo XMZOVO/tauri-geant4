@@ -53,7 +53,7 @@ export const useStore = defineStore('stores', {
     totalParticles: 1e6,
     totalTime: '00:00:00',
     detectorPos: { x: 0, y: 0, z: 0 } as Pos,
-    particlePos: { x: 25.0, y: 0, z: 0 } as Pos,
+    particlePos: { x: 25.0, y: 0.0, z: 0.0 } as Pos,
     detectorOpacity: 0.6,
     showAxes: true,
     showWorldVolume: true,

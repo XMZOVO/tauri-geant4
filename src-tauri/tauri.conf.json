@@ -14,7 +14,7 @@
     "allowlist": {
       "all": true,
       "http": {
-        "scope": ["http://localhost:8080/*"]
+        "scope": ["http://localhost:8080/*","ws://localhost:8080/*"]
       },
       "fs": {
         "all": true,

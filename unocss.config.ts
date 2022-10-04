@@ -9,6 +9,7 @@ import {
 } from 'unocss'
 
 import { presetForms } from '@julr/unocss-preset-forms'
+import { presetScrollbar } from 'unocss-preset-scrollbar'
 
 export default defineConfig({
   theme: {
@@ -45,6 +46,10 @@ export default defineConfig({
       'icon-btn',
       'text-[0.9em] inline-block cursor-pointer select-none opacity-75 transition duration-200 ease-in-out hover:opacity-100 hover:text-teal-600 !outline-none',
     ],
+    ['sb', 'scrollbar scrollbar-rounded scrollbar-track-color-card-tabBar scrollbar-thumb-color-input scrollbar-w-4px scrollbar-radius-2 scrollbar-track-radius-4 scrollbar-thumb-radius-4'],
+    ['set-nav-btn', 'py-1 px-2 op-80 hover:bg-card rounded-md hover:op100 cursor-pointer'],
+    ['set-nav-info', 'py-1 px-2 text-xs op40'],
+    ['set-nav-divide', ' border-b mx-2 my-2 op20'],
   ],
   presets: [
     presetUno(),
@@ -60,6 +65,9 @@ export default defineConfig({
         serif: 'DM Serif Display',
         mono: 'DM Mono',
       },
+    }),
+    presetScrollbar({
+      // config
     }),
   ],
   // transformers: [

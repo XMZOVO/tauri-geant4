@@ -11,15 +11,18 @@ specifiers:
   '@unocss/reset': ^0.45.26
   '@vitejs/plugin-vue': ^3.1.0
   '@vueuse/core': ^9.3.0
+  axios: ^0.27.2
   eslint: ^8.24.0
   gsap: ^3.11.2
   highcharts: ^10.2.1
+  i: ^0.3.7
   pinia: ^2.0.22
   three: ^0.144.0
   threejs-gdml-loader: ^1.0.2
   threejs-vrml-loader: ^1.0.1
   typescript: ^4.6.4
   unocss: ^0.45.26
+  unocss-preset-scrollbar: ^0.2.1
   vite: ^3.1.4
   vite-plugin-pages: ^0.26.0
   vue: ^3.2.40
@@ -30,6 +33,7 @@ dependencies:
   '@julr/unocss-preset-forms': 0.0.2_unocss@0.45.26
   '@tauri-apps/api': 1.1.0
   '@vueuse/core': 9.3.0_vue@3.2.40
+  axios: 0.27.2
   gsap: 3.11.2
   highcharts: 10.2.1
   pinia: 2.0.22_bfjwoga25wxjazzogo7o372nwq
@@ -38,18 +42,20 @@ dependencies:
 
 devDependencies:
   '@antfu/eslint-config': 0.27.0_ypn2ylkkyfa5i233caldtndbqa
-  '@iconify/json': 2.1.116
+  '@iconify/json': 2.1.117
   '@tauri-apps/cli': 1.1.1
   '@types/node': 18.7.23
   '@types/three': 0.144.0
   '@unocss/reset': 0.45.26
   '@vitejs/plugin-vue': 3.1.0_vite@3.1.4+vue@3.2.40
   eslint: 8.24.0
+  i: 0.3.7
   three: 0.144.0
   threejs-gdml-loader: 1.0.7
   threejs-vrml-loader: 1.0.1
   typescript: 4.8.4
   unocss: 0.45.26_vite@3.1.4
+  unocss-preset-scrollbar: 0.2.1_unocss@0.45.26
   vite: 3.1.4
   vite-plugin-pages: 0.26.0_vite@3.1.4
   vue-tsc: 0.40.13_typescript@4.8.4
@@ -253,8 +259,8 @@ packages:
     resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
     dev: true
 
-  /@iconify/json/2.1.116:
-    resolution: {integrity: sha512-1w8S1YkZxeKWA5j9wcZPaBDuDRRjOQB2EPmFPwuSkNnnuvPPAEqyoDfoAno/b1WeJfrcfUlxIf3AE1BAdNqeZA==}
+  /@iconify/json/2.1.117:
+    resolution: {integrity: sha512-/09IuBTE/X10GHs2/rspqK5VfBypHi/aa2yvqWyOuybbQTjoOcPIoi/zg+s1HvloHynVr+Avxj3whtZ6CfesfA==}
     dependencies:
       '@iconify/types': 2.0.0
       pathe: 0.3.8
@@ -650,6 +656,10 @@ packages:
       '@unocss/core': 0.45.26
       unconfig: 0.3.6
 
+  /@unocss/core/0.31.17:
+    resolution: {integrity: sha512-DJ3Uk2ePVXvV1qQmgoLK44aqB6f0s+naOEvouI97nzVXDZgxDQPBxIPB/L4vvE4U+gQxEiHwwE3gJ75iPqVzXw==}
+    dev: true
+
   /@unocss/core/0.45.26:
     resolution: {integrity: sha512-V7lNAXy1Ou2+UsD8n8a0ynE7BPuMtZSn6dQtrhNvtkstEBZtBAvlGM07wnSqwZfYeKs8k/MA6Z7S0yJKQzcl1Q==}
 
@@ -672,6 +682,12 @@ packages:
       ohmyfetch: 0.4.19
     transitivePeerDependencies:
       - supports-color
+
+  /@unocss/preset-mini/0.31.17:
+    resolution: {integrity: sha512-gVgMTOKLt3O1ym348QIBmR5sS9W0Ozkk5xelhH6e0VXcpg0dXDPDrl4hFErMy4x6IB86yyJG6Dz5JhcwQB13Ig==}
+    dependencies:
+      '@unocss/core': 0.31.17
+    dev: true
 
   /@unocss/preset-mini/0.45.26:
     resolution: {integrity: sha512-Kab6F2pZHzJudGene6NwGMYA96fuU8gNjCVouSd6oqFF1ZhEBxkQOR56TRjppyCi0MU89hciV5T6kcVZDquGUw==}
@@ -989,10 +1005,23 @@ packages:
       es-shim-unscopables: 1.0.0
     dev: true
 
+  /asynckit/0.4.0:
+    resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
+    dev: false
+
   /available-typed-arrays/1.0.5:
     resolution: {integrity: sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==}
     engines: {node: '>= 0.4'}
     dev: true
+
+  /axios/0.27.2:
+    resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
+    dependencies:
+      follow-redirects: 1.15.2
+      form-data: 4.0.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
 
   /balanced-match/1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -1124,6 +1153,13 @@ packages:
   /colorette/2.0.19:
     resolution: {integrity: sha512-3tlv/dIP7FWvj3BsbHrGLJ6l/oKh1O3TcgBqMn+yyCagOxc23fyzDS6HypQbgxWbkpDnf52p1LuR4eWDQ/K9WQ==}
 
+  /combined-stream/1.0.8:
+    resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
+    engines: {node: '>= 0.8'}
+    dependencies:
+      delayed-stream: 1.0.0
+    dev: false
+
   /concat-map/0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
     dev: true
@@ -1222,6 +1258,11 @@ packages:
 
   /defu/6.1.0:
     resolution: {integrity: sha512-pOFYRTIhoKujrmbTRhcW5lYQLBXw/dlTwfI8IguF1QCDJOcJzNH1w+YFjxqy6BAuJrClTy6MUE8q+oKJ2FLsIw==}
+
+  /delayed-stream/1.0.0:
+    resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
+    engines: {node: '>=0.4.0'}
+    dev: false
 
   /destr/1.1.1:
     resolution: {integrity: sha512-QqkneF8LrYmwATMdnuD2MLI3GHQIcBnG6qFC2q9bSH430VTCDAVjcspPmUaKhPGtAtPAftIUFqY1obQYQuwmbg==}
@@ -1997,11 +2038,30 @@ packages:
     resolution: {integrity: sha512-5nqDSxl8nn5BSNxyR3n4I6eDmbolI6WT+QqR547RwxQapgjQBmtktdP+HTBb/a/zLsbzERTONyUB5pefh5TtjQ==}
     dev: true
 
+  /follow-redirects/1.15.2:
+    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dev: false
+
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
     dependencies:
       is-callable: 1.2.7
     dev: true
+
+  /form-data/4.0.0:
+    resolution: {integrity: sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==}
+    engines: {node: '>= 6'}
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      mime-types: 2.1.35
+    dev: false
 
   /fs.realpath/1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
@@ -2166,6 +2226,11 @@ packages:
   /human-signals/2.1.0:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
     engines: {node: '>=10.17.0'}
+
+  /i/0.3.7:
+    resolution: {integrity: sha512-FYz4wlXgkQwIPqhzC5TdNMLSE5+GS1IIDJZY/1ZiEPCT2S3COUVZeT5OW4BmW4r5LHLQuOosSwsvnroG9GR59Q==}
+    engines: {node: '>=0.4'}
+    dev: true
 
   /ignore/5.2.0:
     resolution: {integrity: sha512-CmxgYGiEPCLhfLnpPp1MoRmifwEIOgjcHXxOBjv7mY96c+eWScsOP9c112ZyLdWHi0FxHjI+4uVhKYp/gcdRmQ==}
@@ -2539,6 +2604,18 @@ packages:
     dependencies:
       braces: 3.0.2
       picomatch: 2.3.1
+
+  /mime-db/1.52.0:
+    resolution: {integrity: sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==}
+    engines: {node: '>= 0.6'}
+    dev: false
+
+  /mime-types/2.1.35:
+    resolution: {integrity: sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==}
+    engines: {node: '>= 0.6'}
+    dependencies:
+      mime-db: 1.52.0
+    dev: false
 
   /mimic-fn/2.1.0:
     resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
@@ -3083,7 +3160,7 @@ packages:
     dependencies:
       '@types/three': 0.144.0
       three: 0.145.0
-      typescript: 4.9.0-dev.20221002
+      typescript: 4.9.0-dev.20221004
     dev: true
 
   /threejs-vrml-loader/1.0.1:
@@ -3091,7 +3168,7 @@ packages:
     dependencies:
       '@types/three': 0.144.0
       three: 0.145.0
-      typescript: 4.9.0-dev.20221002
+      typescript: 4.9.0-dev.20221004
     dev: true
 
   /to-fast-properties/2.0.0:
@@ -3158,8 +3235,8 @@ packages:
     engines: {node: '>=4.2.0'}
     hasBin: true
 
-  /typescript/4.9.0-dev.20221002:
-    resolution: {integrity: sha512-WX8aiDOo1NqR6/xssEOmMeFQAWuaRFQJsxFadQhAmctWXzQG0Z2WU9UEAa7heI9wjraOiJaLUTM1Ti8+WwJb/w==}
+  /typescript/4.9.0-dev.20221004:
+    resolution: {integrity: sha512-FPgB6PfD+nQ4Sv164FSNZU4LVHZ9gbVVzvYY+mJmji6ORRi9MsX3od1Upjx5V5Qm9BCr2LeI18UK+RBkbMR9sg==}
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
@@ -3191,6 +3268,15 @@ packages:
     resolution: {integrity: sha512-3faScn5I+hy9VleOq/qNbAd6pAx7iH5jYBMS9I1HgQVijz/4mv5Bvw5iw1sC/90CODiKo81G/ps8AJrISn687g==}
     dependencies:
       '@types/unist': 2.0.6
+    dev: true
+
+  /unocss-preset-scrollbar/0.2.1_unocss@0.45.26:
+    resolution: {integrity: sha512-7ubHdOaUwr7xBn1glPpICNNsM2SZGjvWK5uRPNiQYsrZ9YFjsCGHk9x5S2R8pTkuMDQeiaSa/UQbYhjC8Fra5g==}
+    peerDependencies:
+      unocss: '>= 0.31.13 < 1'
+    dependencies:
+      '@unocss/preset-mini': 0.31.17
+      unocss: 0.45.26_vite@3.1.4
     dev: true
 
   /unocss/0.45.26_vite@3.1.4:

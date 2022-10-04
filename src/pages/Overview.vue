@@ -297,9 +297,11 @@ onMounted(async () => {
     const response: any = await fetch('http://localhost:8080/nuclideDb')
     store.nuclideList = response.data.data
   }
-  if (store.spectrumData !== undefined || route.query.fetchData)
+  if (route.query.fetchData) {
     await fetchSpectrumData()
-  createChart()
+    createChart()
+  }
+  else if (store.spectrumData.countList.length !== 0) { createChart() }
 })
 
 const openDatabaseForm = () => {
@@ -853,7 +855,7 @@ const executeCalibrate = async () => {
       </div>
     </div>
     <!-- 表内容 -->
-    <div flex-1 overflow-y-auto rounded-md rounded-t-none>
+    <div flex-1 overflow-y-auto rounded-md rounded-t-none sb overflow-x-hidden>
       <div
         v-for="(item, index) in store.nuclideList"
         :key="item.id"

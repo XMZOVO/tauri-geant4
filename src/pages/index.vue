@@ -4,12 +4,14 @@ import { useRouter } from 'vue-router'
 import gsap from 'gsap'
 import { Vector3 } from 'three'
 import { fetch } from '@tauri-apps/api/http'
+import axios from 'axios'
 import Base3D from '~/three/Base3D'
 import { useStore } from '~/stores/store'
 
 const emits = defineEmits(['executeSimulate', 'simulationComplete'])
 const store = useStore()
 const navTab = ref(null)
+const displaySimuInfoCard = ref(null)
 const navTabTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
 const cardTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
 const router = useRouter()
@@ -23,6 +25,8 @@ const cardTabBarItem = $ref([
 
 let strucListSelect = $ref(-1)
 let base3D: Base3D
+let ws: WebSocket
+const duringSimulationInfo = $ref<string[]>([])
 
 interface GdmlStructure {
   name: string
@@ -43,6 +47,10 @@ onMounted(async () => {
   }
   await nextTick()
   gsap.from('.structureListItem', { x: '200%', stagger: 0.05 })
+
+  const url = 'ws://localhost:8080/ws'
+  ws = new WebSocket(url)
+  ws.onmessage = websocketonmessage
 })
 
 onUnmounted(() => {
@@ -54,7 +62,13 @@ onUnmounted(() => {
     base3D.scene.remove(base3D.scene.children[0])
 
   cancelAnimationFrame(base3D.timer)
+
+  ws.close()
 })
+
+function websocketonmessage(e: any) {
+  duringSimulationInfo.unshift(e.data)
+}
 
 const selecListItem = (index: number) => {
   strucListSelect = index
@@ -115,23 +129,34 @@ const dirLightPosChange = (pos: { x: number; y: number; z: number }) => {
 }
 
 const executeSimulate = async () => {
+  duringSimulationInfo.splice(0, duringSimulationInfo.length)
   cardTl.reverse()
   emits('executeSimulate')
+  await gsap.to(displaySimuInfoCard.value, { bottom: 0, duration: 0.3 })
   base3D.autoRotateCamera(true)
-  if (store.detectorTemplate === 0) {
-    await fetch('http://localhost:8080/g4', {
-      method: 'POST',
-      query: {
-        ch: store.naIDetector.cylinderH.toString(),
-        cr: store.naIDetector.cylinderR.toString(),
-        rtt: store.naIDetector.reflectTT.toString(),
-        num: store.totalParticles.toString(),
-        posX: store.particlePos.x.toString(),
-        posY: store.particlePos.y.toString(),
-        posZ: store.particlePos.z.toString(),
-      },
-    })
-  }
+  // await fetch('http://localhost:8080/g4', {
+  //   method: 'POST',
+  //   timeout: 300,
+  //   query: {
+  //     ch: store.naIDetector.cylinderH.toString(),
+  //     cr: store.naIDetector.cylinderR.toString(),
+  //     rtt: store.naIDetector.reflectTT.toString(),
+  //     num: store.totalParticles.toString(),
+  //     posX: store.particlePos.x.toString(),
+  //     posY: store.particlePos.y.toString(),
+  //     posZ: store.particlePos.z.toString(),
+  //   },
+  // })
+  await axios.post('http://localhost:8080/g4', {
+    ch: store.naIDetector.cylinderH.toString(),
+    cr: store.naIDetector.cylinderR.toString(),
+    rtt: store.naIDetector.reflectTT.toString(),
+    num: store.totalParticles.toString(),
+    posX: store.particlePos.x.toString(),
+    posY: store.particlePos.y.toString(),
+    posZ: store.particlePos.z.toString(),
+  })
+
   // 处理本次模拟信息统计
   if (store.detectorTemplate === -1)
     store.lastSimulationInfo.detectorParams = null
@@ -148,18 +173,31 @@ const executeSimulate = async () => {
     store.particlePos.y,
     store.particlePos.z,
   ]
-
+  cardTl.revert()
+  base3D.autoRotateCamera(false)
   emits('simulationComplete')
   router.push({ path: '/overview', query: { fetchData: 1 } })
 }
 </script>
 
 <template>
-  <div flex w-full>
+  <div flex w-full overflow-hidden>
     <!-- 中部 -->
-    <div flex-grow>
+    <div flex-grow relative justify-center flex>
       <!-- 渲染窗口 -->
       <canvas ref="ThreeDom" class="canvas" />
+      <div
+        ref="displaySimuInfoCard"
+        overflow-x-hidden
+        text-sm text-green w="2/3" p="y-1 l-1"
+        border="~ card-item b-none"
+        rounded-md rounded-b-none absolute bottom="-100" h-50 bg="op60 card-stripDark" flex
+        flex-col overflow-y-auto sb
+      >
+        <div v-for="item in duringSimulationInfo" :key="item" whitespace-nowrap>
+          {{ item }}
+        </div>
+      </div>
     </div>
     <!-- 右侧 -->
     <div w-60 flex flex-col>
