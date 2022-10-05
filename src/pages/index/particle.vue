@@ -20,7 +20,7 @@ const sourcePositionChange = () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             坐标 X
           </div>
-          <UInput v-model="store.particlePos.x" @update:model-value="sourcePositionChange">
+          <UInput v-model="store.marco.particle.pos.x" @update:model-value="sourcePositionChange">
             <div absolute flex items-center h-full right-1>
               cm
             </div>
@@ -30,7 +30,7 @@ const sourcePositionChange = () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             Y
           </div>
-          <UInput v-model="store.particlePos.y" @update:model-value="sourcePositionChange">
+          <UInput v-model="store.marco.particle.pos.y" @update:model-value="sourcePositionChange">
             <div absolute flex items-center h-full right-1>
               cm
             </div>
@@ -40,7 +40,7 @@ const sourcePositionChange = () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             Z
           </div>
-          <UInput v-model="store.particlePos.z" @update:model-value="sourcePositionChange">
+          <UInput v-model="store.marco.particle.pos.z" @update:model-value="sourcePositionChange">
             <div absolute flex items-center h-full right-1>
               cm
             </div>
@@ -54,13 +54,13 @@ const sourcePositionChange = () => {
           <div text-end class="w-1/2">
             粒子数
           </div>
-          <UInput v-model="store.totalParticles" />
+          <UInput v-model="store.marco.particle.pos.x" />
         </div>
         <div flex gap-2 items-center h-5>
           <div class="w-1/2" text-end>
             粒子源
           </div>
-          <USelect v-model="store.source">
+          <USelect v-model="store.marco.particle.source">
             <option v-for="item in sourceList" :key="item">
               {{ item }}
             </option>

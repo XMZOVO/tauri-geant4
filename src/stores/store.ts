@@ -1,21 +1,40 @@
 import { defineStore } from 'pinia'
 
+interface Marco {
+  detector: NaIDetect
+  particle: Particle
+  runtimeInfo: RuntimeInfo
+}
+
+interface Particle {
+  source: string
+  number: string
+  pos: Pos
+  dir: Pos
+}
+
 interface NaIDetect {
-  cylinderH: number
-  cylinderR: number
-  reflectTT: number
-  reflectST: number
+  cylinderH: string
+  cylinderR: string
+  reflectTT: string
+  reflectST: string
   reflectMat: string
-  pmtT: number
+  pmtT: string
+  pos: Pos
+}
+
+interface RuntimeInfo {
+  trackingVb: string
+  printModulo: string
 }
 
 interface LastSimulationInfo {
-  totalParticles: number
-  detectorTemplate: number
+  totalParticles: string
+  detectorTemplate: string
   source: string
   totalTime: string
   detectorParams: NaIDetect | null
-  particlePos: number[]
+  particlePos: Pos
 }
 interface spectrumData {
   countList: number[]
@@ -32,33 +51,42 @@ interface nuclide {
 }
 
 interface Pos {
-  x: number
-  y: number
-  z: number
+  x: string
+  y: string
+  z: string
 }
 
 export const useStore = defineStore('stores', {
   state: () => ({
-    naIDetector: {
-      cylinderH: 7.6,
-      cylinderR: 3.8,
-      reflectTT: 0.3,
-      reflectST: 0.2,
-      reflectMat: 'G4_ALUMINUM_OXIDE',
-      pmtT: 3,
-    } as NaIDetect,
+    marco: {
+      detector: {
+        cylinderH: '7.6',
+        cylinderR: '3.8',
+        reflectTT: '0.3',
+        reflectST: '0.2',
+        reflectMat: 'G4_ALUMINUM_OXIDE',
+        pmtT: '3',
+        pos: { x: '0.0', y: '0.0', z: '0.0' },
+      },
+      particle: {
+        source: 'Co60',
+        number: '1000000',
+        pos: { x: '25.0', y: '0.0', z: '0.0' },
+        dir: { x: '1.0', y: '0.0', z: '0.0' },
+      },
+      runtimeInfo: {
+        trackingVb: '0',
+        printModulo: '10000',
+      },
+    } as Marco,
     lastSimulationInfo: {} as LastSimulationInfo,
-    detectorTemplate: 0,
-    source: 'Co60',
-    totalParticles: 1e6,
+    detectorTemplate: '0',
     totalTime: '00:00:00',
-    detectorPos: { x: 0, y: 0, z: 0 } as Pos,
-    particlePos: { x: 25.0, y: 0.0, z: 0.0 } as Pos,
     detectorOpacity: 0.6,
     showAxes: true,
     showWorldVolume: true,
     dirLightIntensity: 1.0,
-    dirLightPos: { x: 0, y: 10, z: 0 } as Pos,
+    dirLightPos: { x: '0', y: '10', z: '0' } as Pos,
     spectrumData: {} as spectrumData,
     nuclideList: [] as nuclide[],
     clibrateMethod: '线性',

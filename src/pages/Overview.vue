@@ -48,20 +48,20 @@ const calPointTable = ref(null)
 const { x, y } = useMouse()
 const nucTableTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
 const infoToDisplay = $ref([
-  { name: '模拟总粒子数', value: store.totalParticles },
-  { name: '探测器模版', value: store.detectorTemplate === 0 ? 'NaI' : 'GDML' },
-  { name: '放射源', value: store.source },
+  { name: '模拟总粒子数', value: store.marco.particle.number },
+  { name: '探测器模版', value: store.detectorTemplate === '0' ? 'NaI' : 'GDML' },
+  { name: '放射源', value: store.marco.particle.source },
   { name: '模拟总用时', value: store.totalTime },
 ])
 
-if (store.detectorTemplate === 0) {
+if (store.detectorTemplate === '0') {
   infoToDisplay.push(...[
-    { name: '晶体高度', value: store.naIDetector.cylinderH },
-    { name: '晶体半径', value: store.naIDetector.cylinderR },
-    { name: '放射层顶厚', value: store.naIDetector.reflectTT },
-    { name: '放射层侧厚', value: store.naIDetector.reflectST },
-    { name: '放射层材料', value: store.naIDetector.reflectMat },
-    { name: 'PMT厚度', value: store.naIDetector.pmtT },
+    { name: '晶体高度', value: store.marco.detector.cylinderH },
+    { name: '晶体半径', value: store.marco.detector.cylinderR },
+    { name: '放射层顶厚', value: store.marco.detector.reflectTT },
+    { name: '放射层侧厚', value: store.marco.detector.reflectST },
+    { name: '放射层材料', value: store.marco.detector.reflectMat },
+    { name: 'PMT厚度', value: store.marco.detector.pmtT },
   ])
 }
 
@@ -215,7 +215,7 @@ const createChart = () => {
                 dataContext.category as string,
               )
               calPointList[fillPointIndex].efficiency
-                = dataContext.y! / store.totalParticles
+                = dataContext.y! / parseFloat(store.marco.particle.number)
               fillPointIndex = -1
             }
           },
@@ -301,7 +301,9 @@ onMounted(async () => {
     await fetchSpectrumData()
     createChart()
   }
-  else if (store.spectrumData.countList.length !== 0) { createChart() }
+  else if (store.spectrumData.countList) {
+    createChart()
+  }
 })
 
 const openDatabaseForm = () => {

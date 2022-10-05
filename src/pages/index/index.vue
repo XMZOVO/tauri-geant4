@@ -25,7 +25,7 @@ let selectedTemplate = $ref(store.detectorTemplate)
 
 const changeTemplate = (index: number) => {
   if (index === 0)
-    selectedTemplate = store.detectorTemplate = index
+    selectedTemplate = store.detectorTemplate = index.toString()
 }
 
 const importGDML = async () => {
@@ -38,15 +38,15 @@ const importGDML = async () => {
   })
   if (selected) {
     emit('importGdml', selected)
-    selectedTemplate = store.detectorTemplate = -1
+    selectedTemplate = store.detectorTemplate = '-1'
   }
 }
 
 const positionChange = () => {
   emit('positionChange', {
-    x: store.detectorPos.x,
-    y: store.detectorPos.y,
-    z: store.detectorPos.z,
+    x: store.marco.detector.pos.x,
+    y: store.marco.detector.pos.y,
+    z: store.marco.detector.pos.z,
   })
 }
 
@@ -99,7 +99,7 @@ const dirLightPosChange = () => {
                   'px-2 rounded-l border-r border-card-item': index === 0,
                   ' rounded-r border-l border-card-item': index === 2,
                 },
-                selectedTemplate === index
+                selectedTemplate === index.toString()
                   ? 'bg-blue-light hover:bg-blue-light'
                   : ' hover:bg-input-hover',
               ]"
@@ -120,7 +120,7 @@ const dirLightPosChange = () => {
           w-full
           relative
           :class="[
-            selectedTemplate === -1 ? 'bg-blue-light hover:bg-blue-light' : 'hover:bg-input-hover bg-input',
+            selectedTemplate === '-1' ? 'bg-blue-light hover:bg-blue-light' : 'hover:bg-input-hover bg-input',
           ]"
           @click="importGDML"
         >
@@ -134,7 +134,7 @@ const dirLightPosChange = () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             晶体高度
           </div>
-          <UInput v-model="store.naIDetector.cylinderH">
+          <UInput v-model="store.marco.detector.cylinderH">
             <div absolute flex items-center h-full right-1>
               cm
             </div>
@@ -144,7 +144,7 @@ const dirLightPosChange = () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             晶体半径
           </div>
-          <UInput v-model="store.naIDetector.cylinderR">
+          <UInput v-model="store.marco.detector.cylinderR">
             <div absolute flex items-center h-full right-1>
               cm
             </div>
@@ -154,7 +154,7 @@ const dirLightPosChange = () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             反射层顶厚
           </div>
-          <UInput v-model="store.naIDetector.reflectTT">
+          <UInput v-model="store.marco.detector.reflectTT">
             <div absolute flex items-center h-full right-1>
               cm
             </div>
@@ -164,7 +164,7 @@ const dirLightPosChange = () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             侧壁厚
           </div>
-          <UInput v-model="store.naIDetector.reflectST">
+          <UInput v-model="store.marco.detector.reflectST">
             <div absolute flex items-center h-full right-1>
               cm
             </div>
@@ -174,7 +174,7 @@ const dirLightPosChange = () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             PMT厚
           </div>
-          <UInput v-model="store.naIDetector.pmtT">
+          <UInput v-model="store.marco.detector.pmtT">
             <div absolute flex items-center h-full right-1>
               cm
             </div>
@@ -189,7 +189,7 @@ const dirLightPosChange = () => {
             坐标X
           </div>
           <UInput
-            v-model="store.detectorPos.x"
+            v-model="store.marco.detector.pos.x"
             @update:model-value="positionChange"
           >
             <div absolute flex items-center h-full right-1>
@@ -202,7 +202,7 @@ const dirLightPosChange = () => {
             Y
           </div>
           <UInput
-            v-model="store.detectorPos.y"
+            v-model="store.marco.detector.pos.y"
             @update:model-value="positionChange"
           >
             <div absolute flex items-center h-full right-1>
@@ -215,7 +215,7 @@ const dirLightPosChange = () => {
             Z
           </div>
           <UInput
-            v-model="store.detectorPos.z"
+            v-model="store.marco.detector.pos.z"
             @update:model-value="positionChange"
           >
             <div absolute flex items-center h-full right-1>

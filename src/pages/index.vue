@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { markRaw, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import gsap from 'gsap'
 import { Vector3 } from 'three'
@@ -134,45 +134,20 @@ const executeSimulate = async () => {
   emits('executeSimulate')
   await gsap.to(displaySimuInfoCard.value, { bottom: 0, duration: 0.3 })
   base3D.autoRotateCamera(true)
-  // await fetch('http://localhost:8080/g4', {
-  //   method: 'POST',
-  //   timeout: 300,
-  //   query: {
-  //     ch: store.naIDetector.cylinderH.toString(),
-  //     cr: store.naIDetector.cylinderR.toString(),
-  //     rtt: store.naIDetector.reflectTT.toString(),
-  //     num: store.totalParticles.toString(),
-  //     posX: store.particlePos.x.toString(),
-  //     posY: store.particlePos.y.toString(),
-  //     posZ: store.particlePos.z.toString(),
-  //   },
-  // })
-  await axios.post('http://localhost:8080/g4', {
-    ch: store.naIDetector.cylinderH.toString(),
-    cr: store.naIDetector.cylinderR.toString(),
-    rtt: store.naIDetector.reflectTT.toString(),
-    num: store.totalParticles.toString(),
-    posX: store.particlePos.x.toString(),
-    posY: store.particlePos.y.toString(),
-    posZ: store.particlePos.z.toString(),
-  })
+
+  const data = JSON.stringify(store.marco)
+  await axios.post('http://localhost:8080/g4', data)
 
   // 处理本次模拟信息统计
-  if (store.detectorTemplate === -1)
+  if (store.detectorTemplate === '-1')
     store.lastSimulationInfo.detectorParams = null
-
   else
-    store.lastSimulationInfo.detectorParams = store.naIDetector
-
+    store.lastSimulationInfo.detectorParams = store.marco.detector
   store.lastSimulationInfo.detectorTemplate = store.detectorTemplate
-  store.lastSimulationInfo.source = store.source
-  store.lastSimulationInfo.totalParticles = store.totalParticles
+  store.lastSimulationInfo.source = store.marco.particle.source
+  store.lastSimulationInfo.totalParticles = store.marco.particle.number
   store.lastSimulationInfo.totalTime = '00:01:00'
-  store.lastSimulationInfo.particlePos = [
-    store.particlePos.x,
-    store.particlePos.y,
-    store.particlePos.z,
-  ]
+  store.lastSimulationInfo.particlePos = store.marco.particle.pos
   cardTl.revert()
   base3D.autoRotateCamera(false)
   emits('simulationComplete')

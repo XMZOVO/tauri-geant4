@@ -3,11 +3,11 @@ import { useVModel } from '@vueuse/core'
 
 const props = withDefaults(
   defineProps<{
-    modelValue?: number
+    modelValue?: string
     disabled?: boolean
   }>(),
   {
-    modelValue: 0,
+    modelValue: '0',
     disabled: false,
   },
 )
@@ -20,7 +20,7 @@ const value = useVModel(props, 'modelValue', emits)
 <template>
   <div flex relative>
     <input
-      v-model.number="value"
+      v-model="value"
       type="text"
       appearance-none
       text-xs
