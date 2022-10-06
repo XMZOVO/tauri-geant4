@@ -26,6 +26,7 @@ interface NaIDetect {
 interface RuntimeInfo {
   trackingVb: string
   printModulo: string
+  analysisVb: string
 }
 
 interface LastSimulationInfo {
@@ -76,7 +77,8 @@ export const useStore = defineStore('stores', {
       },
       runtimeInfo: {
         trackingVb: '0',
-        printModulo: '10000',
+        printModulo: '100000',
+        analysisVb: '0',
       },
     } as Marco,
     lastSimulationInfo: {} as LastSimulationInfo,

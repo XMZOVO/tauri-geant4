@@ -113,3 +113,4 @@ const simulationComplete = () => {
     <RouterView @execute-simulate="executeSimulate" @simulation-complete="simulationComplete" />
   </main>
 </template>
+

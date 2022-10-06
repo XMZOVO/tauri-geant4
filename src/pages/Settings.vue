@@ -21,7 +21,7 @@ const navToSettingContent = (index: number) => {
 </script>
 
 <template>
-  <div flex w-full h-full text-sm>
+  <div flex w-full h-full text-sm overflow-hidden>
     <!-- 设置NavBar -->
     <div w="1/5" flex flex-col items-end p-3>
       <div flex="~ col" w-45 gap-1>
@@ -37,7 +37,7 @@ const navToSettingContent = (index: number) => {
       </div>
     </div>
     <!-- 设置内容 -->
-    <div flex-1 bg-card p-3>
+    <div flex-1 bg-card p-5>
       <RouterView />
     </div>
   </div>

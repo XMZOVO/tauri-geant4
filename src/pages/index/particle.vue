@@ -54,7 +54,7 @@ const sourcePositionChange = () => {
           <div text-end class="w-1/2">
             粒子数
           </div>
-          <UInput v-model="store.marco.particle.pos.x" />
+          <UInput v-model="store.marco.particle.number" />
         </div>
         <div flex gap-2 items-center h-5>
           <div class="w-1/2" text-end>

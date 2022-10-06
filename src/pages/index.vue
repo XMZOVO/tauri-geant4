@@ -134,9 +134,7 @@ const executeSimulate = async () => {
   emits('executeSimulate')
   await gsap.to(displaySimuInfoCard.value, { bottom: 0, duration: 0.3 })
   base3D.autoRotateCamera(true)
-
-  const data = JSON.stringify(store.marco)
-  await axios.post('http://localhost:8080/g4', data)
+  await axios.post('http://localhost:8080/g4', store.marco)
 
   // 处理本次模拟信息统计
   if (store.detectorTemplate === '-1')
@@ -257,7 +255,7 @@ const executeSimulate = async () => {
             </div>
           </div>
           <!-- tab内容页 -->
-          <div flex-grow p-2 overflow-auto>
+          <div flex-grow p-2 overflow-y-auto class="no-scrollbar">
             <RouterView
               @position-change="positionChange"
               @opacity-change="opacityChange"
