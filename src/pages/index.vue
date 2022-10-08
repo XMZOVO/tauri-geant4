@@ -5,6 +5,7 @@ import gsap from 'gsap'
 import { Vector3 } from 'three'
 import { fetch } from '@tauri-apps/api/http'
 import axios from 'axios'
+import { readBinaryFile } from '@tauri-apps/api/fs'
 import Base3D from '~/three/Base3D'
 import { useStore } from '~/stores/store'
 
@@ -92,8 +93,21 @@ const navToAction = (index: number) => {
   router.push(cardTabBarItem[index].path)
 }
 
+const convertGdml = async (path: string) => {
+  const fileContent = await readBinaryFile(path)
+  const formData = new FormData()
+  formData.append('file', new Blob([fileContent.buffer]))
+  const res = await axios.post('http://localhost:8080/convert', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+  return { mtlurl: res.data.mtlurl, objurl: res.data.objurl }
+}
+
 const importGdml = async (path: string) => {
-  await base3D.importGdml(path)
+  const modelUrl = await convertGdml(path)
+  await base3D.importObj(modelUrl.objurl)
   gdmlStructureList.splice(0, gdmlStructureList.length)
   for (const item in base3D.detector) {
     if (item === 'world')

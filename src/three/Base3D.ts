@@ -18,7 +18,9 @@ import {
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GDMLLoader } from 'threejs-gdml-loader'
-// import { VRMLLoader } from 'threejs-vrml-loader'
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
+import { VRMLLoader } from 'three/examples/jsm/loaders/VRMLLoader'
 interface Sizes {
   width: number
   height: number
@@ -49,6 +51,9 @@ export default class Base3D {
   axesHelper!: AxesHelper
   dirLight!: DirectionalLight
   gdmlLoader = new GDMLLoader()
+  mtlLoader = new MTLLoader()
+  objLoader = new OBJLoader()
+  vrmlLoader = new VRMLLoader()
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -138,7 +143,7 @@ export default class Base3D {
   }
 
   async initModel() {
-    // const vrmlLoader = new VRMLLoader()
+    //
     const object: Group = await this.gdmlLoader.loadAsync(
       '/assets/model/gdml/wtest.gdml',
     )
@@ -192,9 +197,32 @@ export default class Base3D {
     this.scene.remove(this.detectorGroup)
     this.scene.add(object)
     this.detectorGroup = object
+    this.detector = {}
     object.children.forEach((element) => {
       this.detector[element.name] = element as Mesh
     })
+  }
+
+  async importObj(objPath: string) {
+    // const mtl = await this.mtlLoader.loadAsync(mtlPath)
+    // this.objLoader.setMaterials(mtl)
+    const obj = await this.objLoader.loadAsync(objPath)
+    this.scene.remove(this.detectorGroup)
+    this.scene.add(obj)
+    this.detectorGroup = obj
+    this.detector = {}
+    obj.children.forEach((element) => {
+      // if (index === 0)
+      //   element.visible = false
+      this.detector[element.name] = element as Mesh
+      this.detector[element.name].material = this.originalMaterial
+    })
+  }
+
+  async importVrml() {
+    this.scene.remove(this.detectorGroup)
+    const a = await this.vrmlLoader.loadAsync('/assets/model/vrml/test1.wrl')
+    this.scene.add(a)
   }
 
   axisVisibleChange(flag: boolean) {

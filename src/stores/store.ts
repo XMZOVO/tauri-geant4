@@ -93,6 +93,7 @@ export const useStore = defineStore('stores', {
     nuclideList: [] as nuclide[],
     clibrateMethod: '线性',
     showCalibrateCurve: true,
+    gdmlParser: 'Vtk',
   }),
   getters: {},
 })
