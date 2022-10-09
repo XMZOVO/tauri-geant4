@@ -23,8 +23,8 @@ const route = useRoute()
 const store = useStore()
 const dataNumPerPage = 10
 const calDataEnergyList = $ref<number[]>([
-  0.662, 117.32, 133.25, 121.78, 244.69, 344.27, 411.11, 443.96, 778.9, 867.37,
-  964.0, 1085.86, 1112.07, 1212.94, 1299.14, 1408.0,
+  0.662, 1.1732, 1.3325, 1.2178, 2.4469, 3.4427, 4.1111, 4.4396, 7.789, 8.6737,
+  9.640, 10.8586, 11.1207, 12.1294, 12.9914, 14.080,
 ])
 const calResult = $ref<calibrateResult[]>([])
 for (let i = 0; i < 15; i++) {
@@ -490,7 +490,7 @@ const executeCalibrate = async () => {
           </div>
         </div>
         <!-- 表身 -->
-        <div ref="dbBtn" flex-grow overflow-y-auto flex flex-col>
+        <div ref="dbBtn" flex-grow overflow-y-auto flex flex-col class="no-scrollbar">
           <div
             v-for="(item, index) in currentPageResult"
             :key="item.energy"
@@ -667,7 +667,7 @@ const executeCalibrate = async () => {
               </div>
             </div>
             <!-- 表身 -->
-            <div flex-1 overflow-y-auto flex flex-col>
+            <div flex-1 overflow-y-auto flex flex-col class="no-scrollbar">
               <div
                 v-for="(item, index) in calPointList"
                 :key="item.energy"

@@ -36,6 +36,7 @@ export default class Base3D {
   timer!: number
   detector: { [name: string]: Mesh } = {}
   detectorGroup!: Group
+  vrmlScene!: Scene
   highlightMaterial = new MeshBasicMaterial({
     wireframe: true,
     color: 0x00FF00,
@@ -65,7 +66,7 @@ export default class Base3D {
     this.initRenderer()
     this.initControls()
     this.initWindowSizes()
-    await this.initModel()
+    // await this.initModel()
     this.initLight()
     this.initAnimateTick()
   }
@@ -143,7 +144,7 @@ export default class Base3D {
   }
 
   async initModel() {
-    //
+    this.cleanCurrentScene()
     const object: Group = await this.gdmlLoader.loadAsync(
       '/assets/model/gdml/wtest.gdml',
     )
@@ -152,9 +153,6 @@ export default class Base3D {
     object.children.forEach((element) => {
       this.detector[element.name] = element as Mesh
     })
-
-    // const a = await vrmlLoader.loadAsync("src/assets/model/vrml/g4_01.wrl");
-    // this.scene.add(a);
   }
 
   initLight() {
@@ -182,35 +180,34 @@ export default class Base3D {
     }
   }
 
-  visibleChange(name: string) {
-    if (name !== 'world') { this.detector[name].visible = !this.detector[name].visible }
-    else {
-      for (const item in this.detector)
-        this.detector[item].visible = !this.detector.world.visible
-    }
+  visibleChangeAll(flag: boolean) {
+    for (const item in this.detector)
+      this.detector[item].visible = flag
+  }
+
+  visibleChange(name: string, flag: boolean) {
+    this.detector[name].visible = flag
   }
 
   async importGdml(path: string) {
+    this.cleanCurrentScene()
     const imgContent = await readBinaryFile(path)
     const blob = URL.createObjectURL(new Blob([imgContent.buffer]))
     const object: Group = await this.gdmlLoader.loadAsync(blob)
-    this.scene.remove(this.detectorGroup)
     this.scene.add(object)
     this.detectorGroup = object
-    this.detector = {}
     object.children.forEach((element) => {
       this.detector[element.name] = element as Mesh
     })
   }
 
-  async importObj(objPath: string) {
-    // const mtl = await this.mtlLoader.loadAsync(mtlPath)
-    // this.objLoader.setMaterials(mtl)
+  async importObj(objPath: string, mtlPath: string) {
+    this.cleanCurrentScene()
+    const mtl = await this.mtlLoader.loadAsync(mtlPath)
+    this.objLoader.setMaterials(mtl)
     const obj = await this.objLoader.loadAsync(objPath)
-    this.scene.remove(this.detectorGroup)
     this.scene.add(obj)
     this.detectorGroup = obj
-    this.detector = {}
     obj.children.forEach((element) => {
       // if (index === 0)
       //   element.visible = false
@@ -219,10 +216,12 @@ export default class Base3D {
     })
   }
 
-  async importVrml() {
+  cleanCurrentScene() {
     this.scene.remove(this.detectorGroup)
-    const a = await this.vrmlLoader.loadAsync('/assets/model/vrml/test1.wrl')
-    this.scene.add(a)
+    this.detector = {}
+
+    if (this.vrmlScene)
+      this.scene.remove(this.vrmlScene)
   }
 
   axisVisibleChange(flag: boolean) {
@@ -230,12 +229,15 @@ export default class Base3D {
   }
 
   worldVisibleChange(flag: boolean) {
-    this.detector.world.visible = flag
+    if (this.detector.world)
+      this.detector.world.visible = flag
+    else if (this.detector.grp1)
+      this.detector.grp1.visible = flag
   }
 
-  positionChange(position: Vector3) {
-    this.detectorGroup.position.copy(position)
-  }
+  // positionChange(position: Vector3) {
+  //   this.detectorGroup.position.copy(position)
+  // }
 
   opacityChange(value: number) {
     for (const item in this.detector) {
@@ -250,6 +252,13 @@ export default class Base3D {
 
   dirLightPosChange(value: Vector3) {
     this.dirLight.position.copy(value)
+  }
+
+  async viewVrmlScene(blob: string) {
+    this.cleanCurrentScene()
+    const obj = await this.vrmlLoader.loadAsync(blob)
+    this.vrmlScene = obj
+    this.scene.add(obj)
   }
 
   autoRotateCamera(flag: boolean) {

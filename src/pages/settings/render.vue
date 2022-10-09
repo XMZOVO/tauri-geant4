@@ -37,7 +37,7 @@ const store = useStore()
       <div op60 text-lg>
         随机着色
       </div>
-      <USwitch v-model="store.marco.runtimeInfo.analysisVb" />
+      <USwitch />
     </div>
   </div>
 </template>

@@ -6,6 +6,12 @@ interface Marco {
   runtimeInfo: RuntimeInfo
 }
 
+interface GdmlMarco {
+  detector: string
+  particle: Particle
+  runtimeInfo: RuntimeInfo
+}
+
 interface Particle {
   source: string
   number: string
@@ -20,7 +26,6 @@ interface NaIDetect {
   reflectST: string
   reflectMat: string
   pmtT: string
-  pos: Pos
 }
 
 interface RuntimeInfo {
@@ -67,13 +72,12 @@ export const useStore = defineStore('stores', {
         reflectST: '0.2',
         reflectMat: 'G4_ALUMINUM_OXIDE',
         pmtT: '3',
-        pos: { x: '0.0', y: '0.0', z: '0.0' },
       },
       particle: {
         source: 'Co60',
         number: '1000000',
         pos: { x: '25.0', y: '0.0', z: '0.0' },
-        dir: { x: '1.0', y: '0.0', z: '0.0' },
+        dir: { x: '0.0', y: '0.0', z: '-1.0' },
       },
       runtimeInfo: {
         trackingVb: '0',
@@ -81,6 +85,7 @@ export const useStore = defineStore('stores', {
         analysisVb: '0',
       },
     } as Marco,
+    gdmlMarco: {} as GdmlMarco,
     lastSimulationInfo: {} as LastSimulationInfo,
     detectorTemplate: '0',
     totalTime: '00:00:00',
@@ -94,6 +99,7 @@ export const useStore = defineStore('stores', {
     clibrateMethod: '线性',
     showCalibrateCurve: true,
     gdmlParser: 'Vtk',
+    currentSceneUrl: '',
   }),
   getters: {},
 })

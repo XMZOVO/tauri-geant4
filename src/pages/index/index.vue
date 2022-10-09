@@ -9,13 +9,15 @@ import UInput from '~/components/ui/UInput.vue'
 import UCheck from '~/components/ui/UCheck.vue'
 
 const emit = defineEmits([
-  'positionChange',
+  // 'positionChange',
   'opacityChange',
   'axisVisibleChange',
   'worldVisibleChange',
   'dirLightIntensityChange',
   'dirLightPosChange',
   'importGdml',
+  'viewVrmlScene',
+  'changeTemplate',
 ])
 
 const store = useStore()
@@ -24,8 +26,10 @@ const detectorTemplates = $ref(['碘化钠', '溴化镧', '高纯锗'])
 let selectedTemplate = $ref(store.detectorTemplate)
 
 const changeTemplate = (index: number) => {
-  if (index === 0)
+  if (index === 0) {
     selectedTemplate = store.detectorTemplate = index.toString()
+    emit('changeTemplate', index)
+  }
 }
 
 const importGDML = async () => {
@@ -42,13 +46,13 @@ const importGDML = async () => {
   }
 }
 
-const positionChange = () => {
-  emit('positionChange', {
-    x: store.marco.detector.pos.x,
-    y: store.marco.detector.pos.y,
-    z: store.marco.detector.pos.z,
-  })
-}
+// const positionChange = () => {
+//   emit('positionChange', {
+//     x: store.marco.detector.pos.x,
+//     y: store.marco.detector.pos.y,
+//     z: store.marco.detector.pos.z,
+//   })
+// }
 
 const opacityChange = () => {
   emit('opacityChange', store.detectorOpacity)
@@ -72,6 +76,18 @@ const dirLightPosChange = () => {
     y: store.dirLightPos.y,
     z: store.dirLightPos.z,
   })
+}
+
+const viewVrmlScene = async () => {
+  const selected = await open({
+    multiple: false,
+    filters: [{
+      name: 'Scene',
+      extensions: ['wrl'],
+    }],
+  })
+  if (selected)
+    emit('viewVrmlScene', selected)
 }
 </script>
 
@@ -128,7 +144,7 @@ const dirLightPosChange = () => {
         </button>
       </div>
     </Collapse>
-    <Collapse title="探测器参数" item-count="5">
+    <Collapse :class="store.detectorTemplate === '-1' ? 'pointer-events-none op-40' : ''" title="探测器参数" item-count="5">
       <div flex flex-col pt-3 gap-2 text-xs text-txt px-5 w-full>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
@@ -182,7 +198,7 @@ const dirLightPosChange = () => {
         </div>
       </div>
     </Collapse>
-    <Collapse title="变换" item-count="4">
+    <!-- <Collapse title="变换" item-count="4">
       <div flex flex-col pt-3 gap-2 text-xs text-txt px-5 w-full>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
@@ -223,18 +239,10 @@ const dirLightPosChange = () => {
             </div>
           </UInput>
         </div>
-        <div flex gap-2 justify-end items-center>
-          <div class="w-1/2" text-end whitespace-nowrap>
-            透明度
-          </div>
-          <URange
-            v-model="store.detectorOpacity"
-            @update:model-value="opacityChange"
-          />
-        </div>
+
       </div>
-    </Collapse>
-    <Collapse title="场景" item-count="6">
+    </Collapse> -->
+    <Collapse title="场景" item-count="8">
       <div flex flex-col pt-3 gap-2 text-xs text-txt px-5 w-full>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/3" text-end whitespace-nowrap text-xs>
@@ -311,6 +319,30 @@ const dirLightPosChange = () => {
             </div>
           </UInput>
         </div>
+        <div flex gap-2 justify-end items-center>
+          <div class="w-1/2" text-end whitespace-nowrap>
+            透明度
+          </div>
+          <URange
+            v-model="store.detectorOpacity"
+            @update:model-value="opacityChange"
+          />
+        </div>
+        <button
+          bg-input
+          px-2
+          h-6
+          rounded-md
+          flex
+          items-center
+          justify-center
+          gap-2
+          hover:bg-input-hover
+          @click="viewVrmlScene"
+        >
+          <div i-carbon-add />
+          导入VRML场景
+        </button>
       </div>
     </Collapse>
   </div>

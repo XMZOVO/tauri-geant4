@@ -39,16 +39,12 @@ onMounted(async () => {
   // 初始化three
   base3D = new Base3D(ThreeDom.value)
   await base3D.init()
+  if (!store.currentSceneUrl)
+    await base3D.initModel()
+  else
+    await base3D.importObj(store.currentSceneUrl, `${store.currentSceneUrl.split('.obj')[0]}.mtl`)
   gsap.from('.canvas', { opacity: 0, duration: 1 })
-  // 填充gdml结构列表
-  for (const item in base3D.detector) {
-    if (item === 'world')
-      gdmlStructureList.unshift({ name: item, visible: true })
-    else gdmlStructureList.push({ name: item, visible: true })
-  }
-  await nextTick()
-  gsap.from('.structureListItem', { x: '200%', stagger: 0.05 })
-
+  freshStructureList()
   const url = 'ws://localhost:8080/ws'
   ws = new WebSocket(url)
   ws.onmessage = websocketonmessage
@@ -71,14 +67,33 @@ function websocketonmessage(e: any) {
   duringSimulationInfo.unshift(e.data)
 }
 
+async function freshStructureList() {
+  gdmlStructureList.splice(0, gdmlStructureList.length)
+  for (const item in base3D.detector) {
+    if (item === 'world')
+      gdmlStructureList.unshift({ name: item, visible: true })
+    else gdmlStructureList.push({ name: item, visible: true })
+  }
+  await nextTick()
+  gsap.from('.structureListItem', { x: '200%', stagger: 0.05 })
+}
+
 const selecListItem = (index: number) => {
   strucListSelect = index
   base3D.highlightSelect(gdmlStructureList[index].name)
 }
 
 const structVisibleChange = (item: GdmlStructure) => {
-  base3D.visibleChange(item.name)
-  item.visible = !item.visible
+  if (item.name === 'world' || item.name === 'grp1') {
+    base3D.visibleChangeAll(!item.visible)
+    const flag = !item.visible
+    for (const i in gdmlStructureList)
+      gdmlStructureList[i].visible = flag
+  }
+  else {
+    base3D.visibleChange(item.name, !item.visible)
+    item.visible = !item.visible
+  }
 }
 
 const navToAction = (index: number) => {
@@ -93,33 +108,30 @@ const navToAction = (index: number) => {
   router.push(cardTabBarItem[index].path)
 }
 
+const changeTemplate = async (index: number) => {
+  store.currentSceneUrl = ''
+  await base3D.initModel()
+  freshStructureList()
+}
+
 const convertGdml = async (path: string) => {
   const fileContent = await readBinaryFile(path)
   const formData = new FormData()
   formData.append('file', new Blob([fileContent.buffer]))
-  const res = await axios.post('http://localhost:8080/convert', formData, {
+  const res = await axios.post('http://localhost:8080/vtkConvert', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   })
-  return { mtlurl: res.data.mtlurl, objurl: res.data.objurl }
+  return { mtlurl: res.data.mtlurl as string, objurl: res.data.objurl as string }
 }
 
 const importGdml = async (path: string) => {
   const modelUrl = await convertGdml(path)
-  await base3D.importObj(modelUrl.objurl)
-  gdmlStructureList.splice(0, gdmlStructureList.length)
-  for (const item in base3D.detector) {
-    if (item === 'world')
-      gdmlStructureList.unshift({ name: item, visible: true })
-    else gdmlStructureList.push({ name: item, visible: true })
-  }
-  await nextTick()
-  gsap.from('.structureListItem', { x: '200%', stagger: 0.05 })
-}
-
-const positionChange = (pos: { x: number; y: number; z: number }) => {
-  base3D.positionChange(new Vector3(pos.x, pos.y, pos.z))
+  await base3D.importObj(modelUrl.objurl, modelUrl.mtlurl)
+  store.currentSceneUrl = modelUrl.objurl
+  freshStructureList()
+  store.gdmlMarco.detector = modelUrl.objurl.split('/').pop()!.split('.')[0]
 }
 
 const opacityChange = (opacity: number) => {
@@ -142,13 +154,25 @@ const dirLightPosChange = (pos: { x: number; y: number; z: number }) => {
   base3D.dirLightPosChange(new Vector3(pos.x, pos.y, pos.z))
 }
 
+const viewVrmlScene = async (path: string) => {
+  const imgContent = await readBinaryFile(path)
+  const blob = URL.createObjectURL(new Blob([imgContent.buffer]))
+  base3D.viewVrmlScene(blob)
+}
+
 const executeSimulate = async () => {
-  duringSimulationInfo.splice(0, duringSimulationInfo.length)
+  duringSimulationInfo.splice(0, duringSimulationInfo.length) // 清空runtime信息
   cardTl.reverse()
   emits('executeSimulate')
   await gsap.to(displaySimuInfoCard.value, { bottom: 0, duration: 0.3 })
   base3D.autoRotateCamera(true)
-  await axios.post('http://localhost:8080/g4', store.marco)
+
+  if (store.detectorTemplate === '-1') {
+    store.gdmlMarco.particle = store.marco.particle
+    store.gdmlMarco.runtimeInfo = store.marco.runtimeInfo
+    await axios.post('http://localhost:8080/g4gdml', store.gdmlMarco)
+  }
+  else if (store.detectorTemplate === '0') { await axios.post('http://localhost:8080/g4', store.marco) }
 
   // 处理本次模拟信息统计
   if (store.detectorTemplate === '-1')
@@ -271,7 +295,6 @@ const executeSimulate = async () => {
           <!-- tab内容页 -->
           <div flex-grow p-2 overflow-y-auto class="no-scrollbar">
             <RouterView
-              @position-change="positionChange"
               @opacity-change="opacityChange"
               @axis-visible-change="axisVisibleChange"
               @world-visible-change="worldVisibleChange"
@@ -279,6 +302,8 @@ const executeSimulate = async () => {
               @dir-light-pos-change="dirLightPosChange"
               @execute-simulate="executeSimulate"
               @import-gdml="importGdml"
+              @view-vrml-scene="viewVrmlScene"
+              @change-template="changeTemplate"
             />
           </div>
         </div>
