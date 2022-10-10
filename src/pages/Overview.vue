@@ -109,6 +109,19 @@ interface nuclide {
   halfLifeUnit: string
 }
 
+function toScientificNotation(num: number | undefined) {
+  if (!num)
+    return
+  const str = num.toString()
+  const reg = /^(\d+)(e)([\-]?\d+)$/
+  const arr = reg.exec(str)
+  if (arr == null)
+    return num.toExponential(2)
+
+  else
+    return `${Math.round(Number(arr[1]) * 10 ** Number(arr[3]))}e${arr[3]}`
+}
+
 onClickOutside(nucTable, () => {
   if (showNucTable) {
     showNucTable = false
@@ -539,7 +552,7 @@ const executeCalibrate = async () => {
               </div>
             </div>
             <div class="w-1/5 resultEfficiency">
-              {{ item.efficiency }}
+              {{ toScientificNotation(item.efficiency) }}
             </div>
             <div class="w-1/5">
               {{ item.fit }}

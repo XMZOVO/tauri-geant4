@@ -20,31 +20,34 @@ const sourcePositionChange = () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             坐标 X
           </div>
-          <UInput v-model="store.marco.particle.pos.x" @update:model-value="sourcePositionChange">
-            <div absolute flex items-center h-full right-1>
+          <div relative flex items-center>
+            <UInput v-model="store.marco.particle.pos.x" text-xs rounded-sm h-5 w-16 @update:model-value="sourcePositionChange" />
+            <div absolute right-1>
               cm
             </div>
-          </UInput>
+          </div>
         </div>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
             Y
           </div>
-          <UInput v-model="store.marco.particle.pos.y" @update:model-value="sourcePositionChange">
-            <div absolute flex items-center h-full right-1>
+          <div relative flex items-center>
+            <UInput v-model="store.marco.particle.pos.y" text-xs rounded-sm h-5 w-16 @update:model-value="sourcePositionChange" />
+            <div absolute right-1>
               cm
             </div>
-          </UInput>
+          </div>
         </div>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
             Z
           </div>
-          <UInput v-model="store.marco.particle.pos.z" @update:model-value="sourcePositionChange">
-            <div absolute flex items-center h-full right-1>
+          <div relative flex items-center>
+            <UInput v-model="store.marco.particle.pos.z" text-xs rounded-sm h-5 w-16 @update:model-value="sourcePositionChange" />
+            <div absolute right-1>
               cm
             </div>
-          </UInput>
+          </div>
         </div>
       </div>
     </Collapse>
@@ -54,7 +57,7 @@ const sourcePositionChange = () => {
           <div text-end class="w-1/2">
             粒子数
           </div>
-          <UInput v-model="store.marco.particle.number" />
+          <UInput v-model="store.marco.particle.number" text-xs rounded-sm h-5 w-16 />
         </div>
         <div flex gap-2 items-center h-5>
           <div class="w-1/2" text-end>

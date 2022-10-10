@@ -5,7 +5,7 @@ import gsap from 'gsap'
 import { Vector3 } from 'three'
 import { fetch } from '@tauri-apps/api/http'
 import axios from 'axios'
-import { readBinaryFile } from '@tauri-apps/api/fs'
+import { readBinaryFile, readTextFile } from '@tauri-apps/api/fs'
 import Base3D from '~/three/Base3D'
 import { useStore } from '~/stores/store'
 
@@ -42,7 +42,8 @@ onMounted(async () => {
   if (!store.currentSceneUrl)
     await base3D.initModel()
   else
-    await base3D.importObj(store.currentSceneUrl, `${store.currentSceneUrl.split('.obj')[0]}.mtl`)
+    // await base3D.importObj(store.currentSceneUrl, `${store.currentSceneUrl.split('.obj')[0]}.mtl`)
+    await base3D.importVrml(store.currentSceneUrl, store.structureList)
   gsap.from('.canvas', { opacity: 0, duration: 1 })
   freshStructureList()
   const url = 'ws://localhost:8080/ws'
@@ -84,7 +85,7 @@ const selecListItem = (index: number) => {
 }
 
 const structVisibleChange = (item: GdmlStructure) => {
-  if (item.name === 'world' || item.name === 'grp1') {
+  if (gdmlStructureList.indexOf(item) === 0) {
     base3D.visibleChangeAll(!item.visible)
     const flag = !item.visible
     for (const i in gdmlStructureList)
@@ -114,24 +115,43 @@ const changeTemplate = async (index: number) => {
   freshStructureList()
 }
 
+function getNodes(str: string, start: string, end: string) {
+  const reg = new RegExp(`${start}(.+?)${end}`, 'g')
+  const result = str.match(reg)!.map(item => item.replace(start, '').replace(end, ''))
+  if (result)
+    return result
+  else return []
+}
+
 const convertGdml = async (path: string) => {
-  const fileContent = await readBinaryFile(path)
+  const fileContent = await readTextFile(path)
+  const newFContent = fileContent.replace('http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd', '../gdml.xsd')
+  const meshList = getNodes(newFContent, '<volume name="', '">')
+  const world = meshList.pop()
+  if (world)
+    meshList.unshift(world)
+  store.structureList = meshList
+
+  const myblob = new Blob([newFContent], {
+    type: 'text/plain',
+  })
   const formData = new FormData()
-  formData.append('file', new Blob([fileContent.buffer]))
-  const res = await axios.post('http://localhost:8080/vtkConvert', formData, {
+  formData.append('file', myblob)
+  const res = await axios.post('http://localhost:8080/vrmlConvert', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   })
-  return { mtlurl: res.data.mtlurl as string, objurl: res.data.objurl as string }
+  return { vrmlurl: res.data.vrmlurl as string, meshList }
 }
 
 const importGdml = async (path: string) => {
-  const modelUrl = await convertGdml(path)
-  await base3D.importObj(modelUrl.objurl, modelUrl.mtlurl)
-  store.currentSceneUrl = modelUrl.objurl
+  const vrmlData = await convertGdml(path)
+
+  await base3D.importVrml(vrmlData.vrmlurl, vrmlData.meshList)
+  store.currentSceneUrl = vrmlData.vrmlurl
   freshStructureList()
-  store.gdmlMarco.detector = modelUrl.objurl.split('/').pop()!.split('.')[0]
+  store.gdmlMarco.detector = vrmlData.vrmlurl.split('/').pop()!.split('.')[0]
 }
 
 const opacityChange = (opacity: number) => {
@@ -143,7 +163,7 @@ const axisVisibleChange = (visible: boolean) => {
 }
 
 const worldVisibleChange = (visible: boolean) => {
-  base3D.worldVisibleChange(visible)
+  base3D.worldVisibleChange(gdmlStructureList[0].name, visible)
 }
 
 const dirLightIntensityChange = (intensity: number) => {
@@ -241,7 +261,7 @@ const executeSimulate = async () => {
                 @click="selecListItem(index)"
               >
                 <div i-carbon-caret-right />
-                <div>{{ item.name.slice(0, 10) }}</div>
+                <div>{{ item.name }}</div>
               </div>
 
               <div

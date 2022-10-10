@@ -150,51 +150,56 @@ const viewVrmlScene = async () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             晶体高度
           </div>
-          <UInput v-model="store.marco.detector.cylinderH">
-            <div absolute flex items-center h-full right-1>
+          <div relative flex items-center>
+            <UInput v-model="store.marco.detector.cylinderH" text-xs rounded-sm h-5 w-16 />
+            <div absolute right-1>
               cm
             </div>
-          </UInput>
+          </div>
         </div>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
             晶体半径
           </div>
-          <UInput v-model="store.marco.detector.cylinderR">
-            <div absolute flex items-center h-full right-1>
+          <div relative flex items-center>
+            <UInput v-model="store.marco.detector.cylinderR" text-xs rounded-sm h-5 w-16 />
+            <div absolute right-1>
               cm
             </div>
-          </UInput>
+          </div>
         </div>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
             反射层顶厚
           </div>
-          <UInput v-model="store.marco.detector.reflectTT">
-            <div absolute flex items-center h-full right-1>
+          <div relative flex items-center>
+            <UInput v-model="store.marco.detector.reflectTT" text-xs rounded-sm h-5 w-16 />
+            <div absolute right-1>
               cm
             </div>
-          </UInput>
+          </div>
         </div>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
             侧壁厚
           </div>
-          <UInput v-model="store.marco.detector.reflectST">
-            <div absolute flex items-center h-full right-1>
+          <div relative flex items-center>
+            <UInput v-model="store.marco.detector.reflectST" text-xs rounded-sm h-5 w-16 />
+            <div absolute right-1>
               cm
             </div>
-          </UInput>
+          </div>
         </div>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
             PMT厚
           </div>
-          <UInput v-model="store.marco.detector.pmtT">
-            <div absolute flex items-center h-full right-1>
+          <div relative flex items-center>
+            <UInput v-model="store.marco.detector.pmtT" text-xs rounded-sm h-5 w-16 />
+            <div absolute right-1>
               cm
             </div>
-          </UInput>
+          </div>
         </div>
       </div>
     </Collapse>
@@ -204,40 +209,40 @@ const viewVrmlScene = async () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             坐标X
           </div>
-          <UInput
-            v-model="store.marco.detector.pos.x"
+          <UInput text-xs
+rounded-sm             v-model="store.marco.detector.pos.x"
             @update:model-value="positionChange"
           >
             <div absolute flex items-center h-full right-1>
               cm
             </div>
-          </UInput>
+          </UInput text-xs>rounded-sm
         </div>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
             Y
           </div>
-          <UInput
-            v-model="store.marco.detector.pos.y"
+          <UInput text-xs
+rounded-sm             v-model="store.marco.detector.pos.y"
             @update:model-value="positionChange"
           >
             <div absolute flex items-center h-full right-1>
               cm
             </div>
-          </UInput>
+          </UInput text-xs>rounded-sm
         </div>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
             Z
           </div>
-          <UInput
-            v-model="store.marco.detector.pos.z"
+          <UInput text-xs
+rounded-sm             v-model="store.marco.detector.pos.z"
             @update:model-value="positionChange"
           >
             <div absolute flex items-center h-full right-1>
               cm
             </div>
-          </UInput>
+          </UInput text-xs>rounded-sm
         </div>
 
       </div>
@@ -284,40 +289,49 @@ const viewVrmlScene = async () => {
           <div class="w-1/2" text-end whitespace-nowrap>
             X
           </div>
-          <UInput
-            v-model="store.dirLightPos.x"
-            @update:model-value="dirLightPosChange"
-          >
+          <div relative flex items-center>
+            <UInput
+              v-model="store.dirLightPos.x"
+              text-xs rounded-sm
+              h-5
+              w-16 @update:model-value="dirLightPosChange"
+            />
             <div absolute flex items-center h-full right-1>
               cm
             </div>
-          </UInput>
+          </div>
         </div>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
             Y
           </div>
-          <UInput
-            v-model="store.dirLightPos.y"
-            @update:model-value="dirLightPosChange"
-          >
-            <div absolute flex items-center h-full right-1>
+          <div relative flex items-center>
+            <UInput
+              v-model="store.dirLightPos.y"
+              text-xs rounded-sm
+              h-5
+              w-16 @update:model-value="dirLightPosChange"
+            />
+            <div absolute right-1>
               cm
             </div>
-          </UInput>
+          </div>
         </div>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>
             Z
           </div>
-          <UInput
-            v-model="store.dirLightPos.z"
-            @update:model-value="dirLightPosChange"
-          >
-            <div absolute flex items-center h-full right-1>
+          <div relative flex items-center>
+            <UInput
+              v-model="store.dirLightPos.z"
+              text-xs rounded-sm
+              h-5
+              w-16 @update:model-value="dirLightPosChange"
+            />
+            <div absolute right-1>
               cm
             </div>
-          </UInput>
+          </div>
         </div>
         <div flex gap-2 justify-end items-center>
           <div class="w-1/2" text-end whitespace-nowrap>

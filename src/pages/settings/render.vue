@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useStore } from '~/stores/store'
 import USwitch from '~/components/ui/USwitch.vue'
+import USlide from '~/components/ui/USlide.vue'
 const store = useStore()
 </script>
 
@@ -18,9 +19,9 @@ const store = useStore()
       >
         <div
           w-5 h-5
-          :class="store.gdmlParser === 'Vtk' ? 'i-carbon-radio-button-checked' : 'i-carbon-radio-button'"
+          :class="store.gdmlParser === 'VRML' ? 'i-carbon-radio-button-checked' : 'i-carbon-radio-button'"
         />
-        <div>Vtk</div>
+        <div>VRML</div>
       </div>
       <div
         cursor-pointer bg-card-item items-center gap-2 flex px-3 h-10 rounded-md hover="bg-input/"
@@ -32,6 +33,15 @@ const store = useStore()
         <div>System</div>
       </div>
     </div>
+    <div flex gap-2>
+      <div op60>
+        渲染精细度（lineSegmentsPerCircle）
+      </div>
+      <div op100>
+        {{ store.lineSegmentsPerCircle }}
+      </div>
+    </div>
+    <USlide v-model="store.lineSegmentsPerCircle" min="100" max="1000" step="100" />
     <div b="b" op10 py-1 />
     <div flex justify-between items-center>
       <div op60 text-lg>

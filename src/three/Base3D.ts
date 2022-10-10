@@ -35,7 +35,7 @@ export default class Base3D {
   controls!: OrbitControls
   timer!: number
   detector: { [name: string]: Mesh } = {}
-  detectorGroup!: Group
+  detectorGroup!: Group | Scene
   vrmlScene!: Scene
   highlightMaterial = new MeshBasicMaterial({
     wireframe: true,
@@ -216,6 +216,17 @@ export default class Base3D {
     })
   }
 
+  async importVrml(path: string, meshList: string[]) {
+    this.cleanCurrentScene()
+    const vrml = await this.vrmlLoader.loadAsync(path)
+    this.scene.add(vrml)
+    this.detectorGroup = vrml
+    vrml.children.forEach((element, index) => {
+      this.detector[meshList[index]] = element as Mesh
+      this.detector[meshList[index]].material = this.originalMaterial
+    })
+  }
+
   cleanCurrentScene() {
     this.scene.remove(this.detectorGroup)
     this.detector = {}
@@ -228,11 +239,8 @@ export default class Base3D {
     this.axesHelper.visible = flag
   }
 
-  worldVisibleChange(flag: boolean) {
-    if (this.detector.world)
-      this.detector.world.visible = flag
-    else if (this.detector.grp1)
-      this.detector.grp1.visible = flag
+  worldVisibleChange(worldName: string, flag: boolean) {
+    this.detector[worldName].visible = flag
   }
 
   // positionChange(position: Vector3) {

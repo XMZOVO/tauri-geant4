@@ -98,8 +98,11 @@ export const useStore = defineStore('stores', {
     nuclideList: [] as nuclide[],
     clibrateMethod: '线性',
     showCalibrateCurve: true,
-    gdmlParser: 'Vtk',
+    gdmlParser: 'VRML',
+    lineSegmentsPerCircle: '1000',
     currentSceneUrl: '',
+    structureList: [] as string[],
+    cylinderName: 'NaIDetector',
   }),
   getters: {},
 })
