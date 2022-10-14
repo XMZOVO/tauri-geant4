@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import Collapse from '~/components/Collapse.vue'
+import UCheck from '~/components/ui/UCheck.vue'
+import { useStore } from '~/stores/store'
 
 const emits = defineEmits(['executeSimulate'])
+
+const store = useStore()
+
 const executeSimulate = () => {
   emits('executeSimulate')
 }
@@ -9,7 +14,19 @@ const executeSimulate = () => {
 
 <template>
   <div flex flex-col gap-2 text-xs overflow-hidden>
-    <Collapse title="输出结果" item-count="3" />
+    <Collapse title="输出结果" item-count="3">
+      <div flex flex-col pt-3 gap-2 text-xs text-txt px-5 w-full>
+        <div flex items-center justify-between>
+          <div flex gap-1 items-center>
+            <div>
+              记录Trajectory
+            </div>
+            <div op60 hover="op100" text-red i-carbon-warning-filled />
+          </div>
+          <UCheck v-model="store.marco.runtimeInfo.enableTajectory" />
+        </div>
+      </div>
+    </Collapse>
     <button
       bg-card-item
       px-2

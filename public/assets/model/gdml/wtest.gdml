@@ -164,9 +164,9 @@
     <volume name="World">
       <materialref ref="G4_AIR"/>
       <solidref ref="World"/>
-      <physvol name="NaIDetector1">
+      <physvol name="NaIDetector">
         <volumeref ref="NaIDetector"/>
-        <rotation name="NaIDetector1_rot" unit="deg" x="0" y="90" z="0"/>
+        <rotation name="NaIDetector_rot" unit="deg" x="0" y="90" z="0"/>
       </physvol>
       <physvol name="Reflection_Side">
         <volumeref ref="logicCasingBot1"/>

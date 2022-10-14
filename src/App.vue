@@ -15,8 +15,10 @@ const navBarItem = $ref([
   { name: '设置', path: '/settings', icon: 'i-carbon-settings' },
 ])
 
+let isLoading = $ref(false)
+
 onMounted(() => {
-  navBarTl.from('.navBar', { x: '-100%', duration: 0.5, delay: 0.1 })
+  navBarTl.from('.navBar', { x: '-100%', duration: 0.5, delay: 0.4 })
   navBarTl.play()
 })
 
@@ -26,14 +28,24 @@ const navToPage = async (index: number) => {
   await router.push(navBarItem[index].path)
 }
 
-const executeSimulate = () => {
-  navBarTl.reverse()
+const executeSimulate = async () => {
+  await navBarTl.reverse()
 }
 
 const simulationComplete = () => {
   navBarTl.play()
   navTabTl.to(navTab.value, { y: '100%', duration: 0.2 })
   navTabTl.play()
+}
+
+// 模拟终止
+const simulationStop = () => {
+  navBarTl.play()
+  navTabTl.play()
+}
+
+const onLoading = (flag: boolean) => {
+  isLoading = flag
 }
 </script>
 
@@ -88,7 +100,7 @@ const simulationComplete = () => {
       <!-- 占位 -->
       <div flex flex-grow />
       <!-- 用户 -->
-      <div flex items-center gap-3 p="x-2 t-3" border="t back" w-full>
+      <div flex items-center gap-3 p="x-2 t-3" border="t card-item" w-full>
         <img w-10 h-10 rounded-full src="/assets/avatar_male.png">
         <div flex flex-col>
           <div text-sm font-bold>
@@ -110,7 +122,12 @@ const simulationComplete = () => {
       </div>
     </div>
     <!-- 路由 -->
-    <RouterView @execute-simulate="executeSimulate" @simulation-complete="simulationComplete" />
+    <RouterView @execute-simulate="executeSimulate" @simulation-complete="simulationComplete" @on-loading="onLoading" @simulation-stop="simulationStop" />
+
+    <div v-if="isLoading" absolute w-full h-full z-50 bg-back op80 items-center text-txt flex flex-col justify-center transition-all duration-10>
+      <div i-eos-icons-bubble-loading h-10 w-10 />
+      <div>加载中</div>
+    </div>
   </main>
 </template>
 

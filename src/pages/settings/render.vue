@@ -10,6 +10,7 @@ const store = useStore()
     <div text-xl font-bold>
       渲染
     </div>
+    <!--  -->
     <div op60>
       GDML解析器
     </div>
@@ -33,21 +34,35 @@ const store = useStore()
         <div>System</div>
       </div>
     </div>
+    <!--  -->
     <div flex gap-2>
       <div op60>
-        渲染精细度（lineSegmentsPerCircle）
+        渲染精细度（lineSegmentsPerCircle, 仅GDML模式生效）
       </div>
       <div op100>
         {{ store.lineSegmentsPerCircle }}
       </div>
     </div>
     <USlide v-model="store.lineSegmentsPerCircle" min="100" max="1000" step="100" />
+    <!--  -->
     <div b="b" op10 py-1 />
+    <!--  -->
     <div flex justify-between items-center>
       <div op60 text-lg>
         随机着色
       </div>
-      <USwitch />
+      <USwitch v-model="store.randomColor" />
     </div>
+    <div b="b" op10 py-1 />
+    <!--  -->
+    <div flex gap-2>
+      <div op60>
+        Roughness
+      </div>
+      <div op100>
+        {{ store.roughness }}
+      </div>
+    </div>
+    <USlide v-model="store.roughness" min="0" max="1" step="0.1" />
   </div>
 </template>

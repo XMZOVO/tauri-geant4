@@ -4,11 +4,11 @@ import Collapse from '~/components/Collapse.vue'
 import UInput from '~/components/ui/UInput.vue'
 import USelect from '~/components/ui/USelect.vue'
 
+const emit = defineEmits(['particlePositionChange'])
 const store = useStore()
 const sourceList = $ref(['Co60', 'Cs137', 'Eu152'])
-
-const sourcePositionChange = () => {
-
+const particlePositionChange = () => {
+  emit('particlePositionChange', store.marco.particle.pos)
 }
 </script>
 
@@ -21,9 +21,9 @@ const sourcePositionChange = () => {
             坐标 X
           </div>
           <div relative flex items-center>
-            <UInput v-model="store.marco.particle.pos.x" text-xs rounded-sm h-5 w-16 @update:model-value="sourcePositionChange" />
+            <UInput v-model="store.marco.particle.pos.x" text-xs rounded-sm h-5 w-16 @update:model-value="particlePositionChange" />
             <div absolute right-1>
-              cm
+              mm
             </div>
           </div>
         </div>
@@ -32,9 +32,9 @@ const sourcePositionChange = () => {
             Y
           </div>
           <div relative flex items-center>
-            <UInput v-model="store.marco.particle.pos.y" text-xs rounded-sm h-5 w-16 @update:model-value="sourcePositionChange" />
+            <UInput v-model="store.marco.particle.pos.y" text-xs rounded-sm h-5 w-16 @update:model-value="particlePositionChange" />
             <div absolute right-1>
-              cm
+              mm
             </div>
           </div>
         </div>
@@ -43,9 +43,9 @@ const sourcePositionChange = () => {
             Z
           </div>
           <div relative flex items-center>
-            <UInput v-model="store.marco.particle.pos.z" text-xs rounded-sm h-5 w-16 @update:model-value="sourcePositionChange" />
+            <UInput v-model="store.marco.particle.pos.z" text-xs rounded-sm h-5 w-16 @update:model-value="particlePositionChange" />
             <div absolute right-1>
-              cm
+              mm
             </div>
           </div>
         </div>

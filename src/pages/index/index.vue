@@ -153,7 +153,7 @@ const viewVrmlScene = async () => {
           <div relative flex items-center>
             <UInput v-model="store.marco.detector.cylinderH" text-xs rounded-sm h-5 w-16 />
             <div absolute right-1>
-              cm
+              mm
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@ const viewVrmlScene = async () => {
           <div relative flex items-center>
             <UInput v-model="store.marco.detector.cylinderR" text-xs rounded-sm h-5 w-16 />
             <div absolute right-1>
-              cm
+              mm
             </div>
           </div>
         </div>
@@ -175,7 +175,7 @@ const viewVrmlScene = async () => {
           <div relative flex items-center>
             <UInput v-model="store.marco.detector.reflectTT" text-xs rounded-sm h-5 w-16 />
             <div absolute right-1>
-              cm
+              mm
             </div>
           </div>
         </div>
@@ -186,7 +186,7 @@ const viewVrmlScene = async () => {
           <div relative flex items-center>
             <UInput v-model="store.marco.detector.reflectST" text-xs rounded-sm h-5 w-16 />
             <div absolute right-1>
-              cm
+              mm
             </div>
           </div>
         </div>
@@ -197,7 +197,7 @@ const viewVrmlScene = async () => {
           <div relative flex items-center>
             <UInput v-model="store.marco.detector.pmtT" text-xs rounded-sm h-5 w-16 />
             <div absolute right-1>
-              cm
+              mm
             </div>
           </div>
         </div>
@@ -214,7 +214,7 @@ rounded-sm             v-model="store.marco.detector.pos.x"
             @update:model-value="positionChange"
           >
             <div absolute flex items-center h-full right-1>
-              cm
+              mm
             </div>
           </UInput text-xs>rounded-sm
         </div>
@@ -227,7 +227,7 @@ rounded-sm             v-model="store.marco.detector.pos.y"
             @update:model-value="positionChange"
           >
             <div absolute flex items-center h-full right-1>
-              cm
+              mm
             </div>
           </UInput text-xs>rounded-sm
         </div>
@@ -240,7 +240,7 @@ rounded-sm             v-model="store.marco.detector.pos.z"
             @update:model-value="positionChange"
           >
             <div absolute flex items-center h-full right-1>
-              cm
+              mm
             </div>
           </UInput text-xs>rounded-sm
         </div>
@@ -297,7 +297,7 @@ rounded-sm             v-model="store.marco.detector.pos.z"
               w-16 @update:model-value="dirLightPosChange"
             />
             <div absolute flex items-center h-full right-1>
-              cm
+              mm
             </div>
           </div>
         </div>
@@ -313,7 +313,7 @@ rounded-sm             v-model="store.marco.detector.pos.z"
               w-16 @update:model-value="dirLightPosChange"
             />
             <div absolute right-1>
-              cm
+              mm
             </div>
           </div>
         </div>
@@ -329,7 +329,7 @@ rounded-sm             v-model="store.marco.detector.pos.z"
               w-16 @update:model-value="dirLightPosChange"
             />
             <div absolute right-1>
-              cm
+              mm
             </div>
           </div>
         </div>

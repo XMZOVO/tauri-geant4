@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import USwitch from '~/components/ui/USwitch.vue'
+import { useStore } from '~/stores/store'
+
+const store = useStore()
 </script>
 
 <template>
@@ -11,7 +14,7 @@ import USwitch from '~/components/ui/USwitch.vue'
       <div op60 text-lg>
         效率显示科学记数法
       </div>
-      <USwitch />
+      <USwitch v-model="store.showSciencedata" />
     </div>
   </div>
 </template>

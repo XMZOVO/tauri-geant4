@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-
 interface Marco {
   detector: NaIDetect
   particle: Particle
@@ -7,16 +6,9 @@ interface Marco {
 }
 
 interface GdmlMarco {
-  detector: string
+  detector: GdmlDetector
   particle: Particle
   runtimeInfo: RuntimeInfo
-}
-
-interface Particle {
-  source: string
-  number: string
-  pos: Pos
-  dir: Pos
 }
 
 interface NaIDetect {
@@ -28,10 +20,23 @@ interface NaIDetect {
   pmtT: string
 }
 
+interface GdmlDetector {
+  fileName: string
+  sdLogVolName: string
+}
+
+interface Particle {
+  source: string
+  number: string
+  pos: Pos
+  dir: Pos
+}
+
 interface RuntimeInfo {
   trackingVb: string
   printModulo: string
   analysisVb: string
+  enableTajectory: boolean
 }
 
 interface LastSimulationInfo {
@@ -42,6 +47,28 @@ interface LastSimulationInfo {
   detectorParams: NaIDetect | null
   particlePos: Pos
 }
+
+interface calibrateResult {
+  energy?: number
+  efficiency?: number
+  fit?: number
+  delta?: number
+}
+interface specParams {
+  name: string
+  ch: string
+  minEn: string
+  maxEn: string
+  fA: string
+  fB: string
+  fC: string
+}
+
+interface calPoint {
+  energy?: number
+  efficiency?: number
+}
+
 interface spectrumData {
   countList: number[]
   energyList: number[]
@@ -76,33 +103,87 @@ export const useStore = defineStore('stores', {
       particle: {
         source: 'Co60',
         number: '1000000',
-        pos: { x: '25.0', y: '0.0', z: '0.0' },
+        pos: { x: '0.0', y: '0.0', z: '50.0' },
         dir: { x: '0.0', y: '0.0', z: '-1.0' },
       },
       runtimeInfo: {
         trackingVb: '0',
         printModulo: '100000',
         analysisVb: '0',
+        enableTajectory: false,
       },
     } as Marco,
-    gdmlMarco: {} as GdmlMarco,
+    gdmlMarco: { detector: { sdLogVolName: 'NaIDetector' } } as GdmlMarco,
     lastSimulationInfo: {} as LastSimulationInfo,
     detectorTemplate: '0',
-    totalTime: '00:00:00',
+    totalTime: '',
     detectorOpacity: 0.6,
     showAxes: true,
     showWorldVolume: true,
     dirLightIntensity: 1.0,
     dirLightPos: { x: '0', y: '10', z: '0' } as Pos,
+
+    calDataEnergyList: [
+      0.662, 1.1732, 1.3325, 1.2178, 2.4469, 3.4427, 4.1111, 4.4396, 7.789, 8.6737,
+      9.640, 10.8586, 11.1207, 12.1294, 12.9914, 14.080,
+    ],
+    calResultList: [] as calibrateResult[],
+    calPointList: [{ energy: 1.166, efficiency: 0.001339 },
+      { energy: 1.324, efficiency: 0.001378 }] as calPoint[],
+    specParams: {
+      name: 'result',
+      ch: '1024',
+      minEn: '0',
+      maxEn: '2.3',
+      fA: '-0.0137257',
+      fB: '0.0739501',
+      fC: '-0.152982',
+    } as specParams,
     spectrumData: {} as spectrumData,
-    nuclideList: [] as nuclide[],
+    nucTableData: [] as nuclide[],
+    nucTableDataBackup: [] as nuclide[],
     clibrateMethod: '线性',
     showCalibrateCurve: true,
     gdmlParser: 'VRML',
-    lineSegmentsPerCircle: '1000',
+    lineSegmentsPerCircle: '200',
     currentSceneUrl: '',
     structureList: [] as string[],
-    cylinderName: 'NaIDetector',
+
+    activeSettingPage: 0,
+    showSciencedata: '1',
+    randomColor: '0',
+    roughness: '0.5',
+
+    clipMod: false,
+    clipPanes: ['0', '0', '0'],
+    autoRotate: false,
   }),
+  actions: {
+    setGdmlMarco() {
+      this.gdmlMarco.particle = this.marco.particle
+      this.gdmlMarco.runtimeInfo = this.marco.runtimeInfo
+    },
+    setLastSimulationInfo() {
+      if (this.detectorTemplate === '-1')
+        this.lastSimulationInfo.detectorParams = null
+
+      else
+        this.lastSimulationInfo.detectorParams = this.marco.detector
+      this.lastSimulationInfo.detectorTemplate = this.detectorTemplate
+      this.lastSimulationInfo.source = this.marco.particle.source
+      this.lastSimulationInfo.totalParticles = this.marco.particle.number
+      this.lastSimulationInfo.totalTime = '00:01:00'
+      this.lastSimulationInfo.particlePos = this.marco.particle.pos
+    },
+    initcalResult() {
+      for (let i = 0; i < 15; i++) {
+        this.calResultList.push({
+          energy: this.calDataEnergyList[i],
+          efficiency: undefined,
+          delta: undefined,
+        })
+      }
+    },
+  },
   getters: {},
 })

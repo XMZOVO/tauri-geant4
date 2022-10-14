@@ -1,20 +1,29 @@
 <script setup lang="ts">
-import { markRaw, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import gsap from 'gsap'
 import { Vector3 } from 'three'
-import { fetch } from '@tauri-apps/api/http'
 import axios from 'axios'
 import { readBinaryFile, readTextFile } from '@tauri-apps/api/fs'
+import { useElementBounding, useMagicKeys } from '@vueuse/core'
 import Base3D from '~/three/Base3D'
 import { useStore } from '~/stores/store'
+import Toasts from '~/components/Toasts.vue'
+import PopBtn from '~/components/PopBtn.vue'
+import UCheck from '~/components/ui/UCheck.vue'
+import USlide from '~/components/ui/USlide.vue'
+const emits = defineEmits(['executeSimulate', 'simulationComplete', 'onLoading', 'simulationStop'])
 
-const emits = defineEmits(['executeSimulate', 'simulationComplete'])
+const { control, c /* keys you want to monitor */ } = useMagicKeys()
+
 const store = useStore()
 const navTab = ref(null)
+const toast = ref()
+const interactiveBar = ref()
 const displaySimuInfoCard = ref(null)
 const navTabTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
 const cardTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
+const simuInfoTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
 const router = useRouter()
 const ThreeDom = ref() as any
 const gdmlStructureList = $ref<GdmlStructure[]>([])
@@ -33,22 +42,24 @@ interface GdmlStructure {
   name: string
   visible: boolean
 }
+
+watchEffect(() => {
+  if (control.value && c.value)
+    killProcess()
+})
+
 onMounted(async () => {
-  cardTl.from('.card', { x: '100%', stagger: 0.1, delay: 0.3 })
+  cardTl.from('.card', { x: '100%', stagger: 0.1, delay: 0.4 }).from(interactiveBar.value, { y: '150%', duration: 0.3 }, '+=0.1')
   cardTl.play()
   // 初始化three
   base3D = new Base3D(ThreeDom.value)
   await base3D.init()
-  if (!store.currentSceneUrl)
-    await base3D.initModel()
-  else
-    // await base3D.importObj(store.currentSceneUrl, `${store.currentSceneUrl.split('.obj')[0]}.mtl`)
-    await base3D.importVrml(store.currentSceneUrl, store.structureList)
+  await loadModelRenderSettings()
   gsap.from('.canvas', { opacity: 0, duration: 1 })
-  freshStructureList()
+  // 初始化websocket
   const url = 'ws://localhost:8080/ws'
   ws = new WebSocket(url)
-  ws.onmessage = websocketonmessage
+  ws.onmessage = websocketOnMessage
 })
 
 onUnmounted(() => {
@@ -64,19 +75,37 @@ onUnmounted(() => {
   ws.close()
 })
 
-function websocketonmessage(e: any) {
+function websocketOnMessage(e: any) {
   duringSimulationInfo.unshift(e.data)
 }
 
 async function freshStructureList() {
   gdmlStructureList.splice(0, gdmlStructureList.length)
   for (const item in base3D.detector) {
-    if (item === 'world')
+    if (base3D.detector[item] === base3D.world)
       gdmlStructureList.unshift({ name: item, visible: true })
     else gdmlStructureList.push({ name: item, visible: true })
   }
   await nextTick()
   gsap.from('.structureListItem', { x: '200%', stagger: 0.05 })
+}
+
+async function loadModelRenderSettings() {
+  if (!store.currentSceneUrl)
+    await base3D.initModel()
+
+  else await base3D.importVrml(store.currentSceneUrl, store.structureList, store.randomColor === '1')
+  freshStructureList()
+  base3D.worldVisibleChange(store.showWorldVolume)
+  base3D.axisVisibleChange(store.showAxes)
+
+  base3D.highLightSDLogVolume(store.gdmlMarco.detector.sdLogVolName)
+  base3D.dirLightIntensityChange(store.dirLightIntensity)
+  base3D.dirLightPosChange(new Vector3(parseFloat(store.dirLightPos.x), parseFloat(store.dirLightPos.y), parseFloat(store.dirLightPos.z)))
+  base3D.opacityChange(store.detectorOpacity)
+  base3D.setRoughness(parseFloat(store.roughness))
+  base3D.particlePositionChange(new Vector3(parseFloat(store.marco.particle.pos.x), parseFloat(store.marco.particle.pos.y), parseFloat(store.marco.particle.pos.z)))
+  base3D.fitCameraToSelection(base3D.camera, base3D.controls, base3D.detectorGroup.children, 1.8)
 }
 
 const selecListItem = (index: number) => {
@@ -111,8 +140,7 @@ const navToAction = (index: number) => {
 
 const changeTemplate = async (index: number) => {
   store.currentSceneUrl = ''
-  await base3D.initModel()
-  freshStructureList()
+  loadModelRenderSettings()
 }
 
 function getNodes(str: string, start: string, end: string) {
@@ -135,9 +163,8 @@ const convertGdml = async (path: string) => {
   const myblob = new Blob([newFContent], {
     type: 'text/plain',
   })
-  const formData = new FormData()
-  formData.append('file', myblob)
-  const res = await axios.post('http://localhost:8080/vrmlConvert', formData, {
+
+  const res = await axios.post('http://localhost:8080/vrmlConvert', { lineSegments: store.lineSegmentsPerCircle, file: myblob }, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -146,12 +173,18 @@ const convertGdml = async (path: string) => {
 }
 
 const importGdml = async (path: string) => {
-  const vrmlData = await convertGdml(path)
-
-  await base3D.importVrml(vrmlData.vrmlurl, vrmlData.meshList)
-  store.currentSceneUrl = vrmlData.vrmlurl
-  freshStructureList()
-  store.gdmlMarco.detector = vrmlData.vrmlurl.split('/').pop()!.split('.')[0]
+  emits('onLoading', true)
+  try {
+    const vrmlData = await convertGdml(path)
+    await base3D.importVrml(vrmlData.vrmlurl, vrmlData.meshList, store.randomColor === '1')
+    store.currentSceneUrl = vrmlData.vrmlurl
+    loadModelRenderSettings()
+    store.specParams.name = store.gdmlMarco.detector.fileName = vrmlData.vrmlurl.split('/').pop()!.split('.')[0]
+  }
+  catch {
+    emits('onLoading', false)
+  }
+  emits('onLoading', false)
 }
 
 const opacityChange = (opacity: number) => {
@@ -163,7 +196,7 @@ const axisVisibleChange = (visible: boolean) => {
 }
 
 const worldVisibleChange = (visible: boolean) => {
-  base3D.worldVisibleChange(gdmlStructureList[0].name, visible)
+  base3D.worldVisibleChange(visible)
 }
 
 const dirLightIntensityChange = (intensity: number) => {
@@ -174,40 +207,89 @@ const dirLightPosChange = (pos: { x: number; y: number; z: number }) => {
   base3D.dirLightPosChange(new Vector3(pos.x, pos.y, pos.z))
 }
 
+const particlePositionChange = (pos: { x: number; y: number; z: number }) => {
+  base3D.particlePositionChange(new Vector3(pos.x, pos.y, pos.z))
+}
+
 const viewVrmlScene = async (path: string) => {
   const imgContent = await readBinaryFile(path)
   const blob = URL.createObjectURL(new Blob([imgContent.buffer]))
   base3D.viewVrmlScene(blob)
+  gdmlStructureList.splice(0, gdmlStructureList.length)
+}
+
+// 计算用时
+const getUseTime = (startTime: number, endTime: number) => {
+  const useTime = endTime - startTime
+  const hour = Math.floor(useTime / 3600000)
+  const minute = Math.floor((useTime - hour * 3600000) / 60000)
+  const second = Math.floor((useTime - hour * 3600000 - minute * 60000) / 1000)
+  return `${hour}h ${minute}m ${second}s`
 }
 
 const executeSimulate = async () => {
   duringSimulationInfo.splice(0, duringSimulationInfo.length) // 清空runtime信息
   cardTl.reverse()
   emits('executeSimulate')
-  await gsap.to(displaySimuInfoCard.value, { bottom: 0, duration: 0.3 })
+  await simuInfoTl.to(displaySimuInfoCard.value, { bottom: 0, duration: 0.3 }).play()
+
   base3D.autoRotateCamera(true)
 
-  if (store.detectorTemplate === '-1') {
-    store.gdmlMarco.particle = store.marco.particle
-    store.gdmlMarco.runtimeInfo = store.marco.runtimeInfo
-    await axios.post('http://localhost:8080/g4gdml', store.gdmlMarco)
-  }
-  else if (store.detectorTemplate === '0') { await axios.post('http://localhost:8080/g4', store.marco) }
+  const startTime = new Date().getTime()
 
-  // 处理本次模拟信息统计
-  if (store.detectorTemplate === '-1')
-    store.lastSimulationInfo.detectorParams = null
-  else
-    store.lastSimulationInfo.detectorParams = store.marco.detector
-  store.lastSimulationInfo.detectorTemplate = store.detectorTemplate
-  store.lastSimulationInfo.source = store.marco.particle.source
-  store.lastSimulationInfo.totalParticles = store.marco.particle.number
-  store.lastSimulationInfo.totalTime = '00:01:00'
-  store.lastSimulationInfo.particlePos = store.marco.particle.pos
-  cardTl.revert()
+  let erro
+  if (store.detectorTemplate === '-1') {
+    store.setGdmlMarco()
+
+    await axios.post('http://localhost:8080/g4gdml', store.gdmlMarco, { timeout: 1e5 }).catch((err) => {
+      if (err.request.status === 500)
+        erro = err
+    })
+  }
+  else if (store.detectorTemplate === '0') {
+    await axios.post('http://localhost:8080/g4', store.marco, { timeout: 1e5 }).catch((err) => {
+      if (err.request.status === 500)
+        erro = err
+    })
+  }
+
+  if (erro === undefined) {
+    const endTime = new Date().getTime()
+    store.totalTime = getUseTime(startTime, endTime)
+
+    // 处理本次模拟信息统计
+    store.setLastSimulationInfo()
+
+    cardTl.revert()
+    base3D.autoRotateCamera(false)
+    emits('simulationComplete')
+    router.push({ path: '/overview', query: { fetchData: 1 } })
+    await axios.post('http://localhost:8080/runResult', { name: store.gdmlMarco.detector.fileName })
+  }
+}
+
+async function killProcess() {
+  await axios.post('http://localhost:8080/killProcess')
+  cardTl.play()
+  simuInfoTl.reverse()
   base3D.autoRotateCamera(false)
-  emits('simulationComplete')
-  router.push({ path: '/overview', query: { fetchData: 1 } })
+  emits('simulationStop')
+  setTimeout(() => {
+    toast.value.showToast()
+  }, 300)
+}
+
+const setClip = () => {
+  base3D.setClip(store.clipMod)
+}
+
+const setClipConstant = (index: number) => {
+  base3D.setClipConstant(index, parseFloat(store.clipPanes[index]))
+}
+
+const autoRotate = () => {
+  store.autoRotate = !store.autoRotate
+  base3D.autoRotateCamera(store.autoRotate)
 }
 </script>
 
@@ -217,6 +299,7 @@ const executeSimulate = async () => {
     <div flex-grow relative justify-center flex>
       <!-- 渲染窗口 -->
       <canvas ref="ThreeDom" class="canvas" />
+      <!-- 运行时输出信息 -->
       <div
         ref="displaySimuInfoCard"
         overflow-x-hidden
@@ -229,12 +312,56 @@ const executeSimulate = async () => {
           {{ item }}
         </div>
       </div>
+
+      <!-- interactiveBar -->
+      <div ref="interactiveBar" absolute bottom="3" w-full px-20 select-none>
+        <div flex items-center justify-between px-10 bg-card-stripDark w-full h-12 p-3 rounded-full border="card-item ~" shadow-xl>
+          <PopBtn show-menu="1" tip="视图" icon="i-lucide-view" />
+          <PopBtn show-menu="1" tip="切面" icon="i-iconoir-3d-add-hole">
+            <div flex flex-col text-sm w-full h-full items-center>
+              <div flex flex-1 items-center gap-4 hover="bg-input" rounded="b-none md" p-2 py-1 w-full justify-start>
+                <UCheck v-model="store.clipMod" @update:model-value="setClip" />
+                <div>
+                  启用切面
+                </div>
+              </div>
+              <div flex flex-1 items-center gap-4 hover="bg-input" p-2 py-1 w-full justify-start>
+                <div>
+                  x
+                </div>
+                <USlide v-model="store.clipPanes[0]" min="-50" max="50" step="0.1" @update:model-value="setClipConstant(0)" />
+              </div>
+              <div flex flex-1 items-center gap-4 hover="bg-input" p-2 py-1 w-full justify-start>
+                <div>
+                  y
+                </div>
+                <USlide v-model="store.clipPanes[1]" min="-50" max="50" step="0.1" @update:model-value="setClipConstant(1)" />
+              </div>
+              <div flex flex-1 items-center gap-4 hover="bg-input" rounded="t-none md" p-2 py-1 w-full justify-start>
+                <div>
+                  z
+                </div>
+                <USlide v-model="store.clipPanes[2]" min="-50" max="50" step="0.1" @update:model-value="setClipConstant(2)" />
+              </div>
+            </div>
+          </PopBtn>
+          <PopBtn v-model="store.autoRotate" show-menu="0" tip="自动旋转" icon="i-fluent-cube-rotate-20-regular" @click="autoRotate" />
+          <PopBtn
+
+            show-menu="0" tip="正交视角" icon="i-ph-perspective"
+          />
+          <PopBtn show-menu="0" tip="info" icon="i-iconoir-3d-add-hole" />
+          <PopBtn show-menu="0" tip="info" icon="i-iconoir-3d-add-hole" />
+        </div>
+      </div>
+      <!-- Toast -->
+      <Toasts ref="toast" message="模拟已停止" left="1/3" />
     </div>
     <!-- 右侧 -->
     <div w-60 flex flex-col>
       <!-- 卡1 -->
       <div class="h-1/2 card" p-2 pb-1>
-        <div bg-card h-full rounded-md overflow-x-hidden>
+        <div bg-card h-full rounded-md overflow-x-hidden class="no-scrollbar">
           <div grid grid-cols-1 text-xs>
             <div
               v-for="(item, index) in gdmlStructureList"
@@ -261,10 +388,11 @@ const executeSimulate = async () => {
                 @click="selecListItem(index)"
               >
                 <div i-carbon-caret-right />
-                <div>{{ item.name }}</div>
+                <div>{{ item.name.slice(0, 15) }}</div>
               </div>
 
               <div
+                v-if="index !== 0"
                 h-3
                 w-3
                 :class="[
@@ -324,6 +452,7 @@ const executeSimulate = async () => {
               @import-gdml="importGdml"
               @view-vrml-scene="viewVrmlScene"
               @change-template="changeTemplate"
+              @particle-position-change="particlePositionChange"
             />
           </div>
         </div>

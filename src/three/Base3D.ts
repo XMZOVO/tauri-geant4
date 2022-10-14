@@ -1,21 +1,30 @@
 import { readBinaryFile } from '@tauri-apps/api/fs'
 import type {
-  Group,
-  Material,
-  Mesh,
-  Vector3,
+  BufferGeometry,
 } from 'three'
 import {
   AmbientLight,
+
   AxesHelper,
+  Box3,
   Color,
   DirectionalLight,
-  MeshBasicMaterial,
-  MeshPhongMaterial,
+  DoubleSide,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  OrthographicCamera,
+  PMREMGenerator,
   PerspectiveCamera,
+  Plane,
   Scene,
+  SphereGeometry,
+  Vector3,
   WebGLRenderer,
+
+  sRGBEncoding,
 } from 'three'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GDMLLoader } from 'threejs-gdml-loader'
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
@@ -29,6 +38,7 @@ interface Sizes {
 export default class Base3D {
   canvas: HTMLCanvasElement
   camera!: PerspectiveCamera
+  camera2!: OrthographicCamera
   renderer!: WebGLRenderer
   sizes!: Sizes
   scene!: Scene
@@ -36,17 +46,45 @@ export default class Base3D {
   timer!: number
   detector: { [name: string]: Mesh } = {}
   detectorGroup!: Group | Scene
+  world!: Mesh
+  detectorGeometry!: BufferGeometry
+  particle!: Mesh
   vrmlScene!: Scene
-  highlightMaterial = new MeshBasicMaterial({
-    wireframe: true,
+  clipPlane = [new Plane(new Vector3(-1, 0, 0), 0), new Plane(new Vector3(0, 1, 0), 0), new Plane(new Vector3(0, 0, -1), 0)]
+  highlightMaterial = new MeshStandardMaterial({
     color: 0x00FF00,
+    transparent: true,
+    roughness: 0,
+    wireframe: true,
   })
 
-  originalMaterial = new MeshPhongMaterial({
-    color: 0xFFFFFF, // delete randomColor
+  originalMaterial = new MeshStandardMaterial({
+    color: 0x222222,
     transparent: true,
-    opacity: 0.6, // set opacity to 0.6
-    wireframe: false,
+    roughness: 1,
+    metalness: 0,
+    side: DoubleSide,
+  })
+
+  particleMaterial = new MeshStandardMaterial({
+    color: new Color(0.5, 0, 0),
+    transparent: true,
+    roughness: 0.5,
+  })
+
+  sdLogMatertial = new MeshStandardMaterial({
+    color: new Color(0x055555),
+    transparent: true,
+    roughness: 0.5,
+    side: DoubleSide,
+  })
+
+  worldMaterial = new MeshStandardMaterial({
+    color: 0x222222,
+    transparent: true,
+    roughness: 1,
+    metalness: 0,
+    side: DoubleSide,
   })
 
   axesHelper!: AxesHelper
@@ -66,6 +104,7 @@ export default class Base3D {
     this.initRenderer()
     this.initControls()
     this.initWindowSizes()
+    this.initGPS()
     // await this.initModel()
     this.initLight()
     this.initAnimateTick()
@@ -85,6 +124,13 @@ export default class Base3D {
       1e10,
     )
     this.camera.position.set(100, 100, 100)
+
+    this.camera2 = new OrthographicCamera(
+      75,
+      this.canvas.parentElement!.clientWidth
+        / this.canvas.parentElement!.clientHeight,
+      0.1,
+      1e10)
   }
 
   initRenderer() {
@@ -99,11 +145,13 @@ export default class Base3D {
     )
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.renderer.shadowMap.enabled = true
-    // renderer.shadowMap.type = PCFShadowMap;
-    // renderer.physicallyCorrectLights = true;
-    // renderer.outputEncoding = sRGBEncoding;
-    // renderer.toneMapping = ACESFilmicToneMapping;
-    // renderer.toneMappingExposure = 1;
+    this.renderer.localClippingEnabled = true
+    this.renderer.outputEncoding = sRGBEncoding
+    // this.renderer.toneMapping = ACESFilmicToneMapping
+    this.renderer.toneMappingExposure = 0.75
+
+    const pmremGenerator = new PMREMGenerator(this.renderer)
+    this.scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture
 
     this.axesHelper = new AxesHelper(100)
     this.axesHelper.setColors(
@@ -148,19 +196,31 @@ export default class Base3D {
     const object: Group = await this.gdmlLoader.loadAsync(
       '/assets/model/gdml/wtest.gdml',
     )
-    this.scene.add(object)
-    this.detectorGroup = object
-    object.children.forEach((element) => {
-      this.detector[element.name] = element as Mesh
+    const group = new Group()
+    this.detectorGroup = group.add(...object.children.slice(0, -1))
+    this.world = object.children[object.children.length - 1] as Mesh
+    this.scene.add(this.detectorGroup, this.world)
+
+    this.detector[this.world.name] = this.world
+    this.detector[this.world.name].material = this.worldMaterial
+    this.detectorGroup.children.forEach((element) => {
+      const el = element as Mesh
+      this.detector[element.name] = el
+      this.detector[element.name].material = this.originalMaterial
     })
+  }
+
+  initGPS() {
+    this.particle = new Mesh(new SphereGeometry(2, 20, 20), this.particleMaterial)
+    this.particle.position.set(0, 0, 50)
+    this.scene.add(this.particle)
   }
 
   initLight() {
     this.dirLight = new DirectionalLight(0xFFFFFF, 1)
     this.scene.add(this.dirLight)
 
-    const ambient = new AmbientLight(0xFFFFFF, 0.3)
-    this.scene.add(ambient)
+    this.scene.add(new AmbientLight(0x222222))
   }
 
   initAnimateTick() {
@@ -171,12 +231,19 @@ export default class Base3D {
     this.timer = requestAnimationFrame(this.initAnimateTick.bind(this))
   }
 
-  // functions
   highlightSelect(name: string) {
-    this.detector[name].material = this.highlightMaterial
+    if (this.detector[name].material === this.sdLogMatertial)
+      this.sdLogMatertial.wireframe = true
+    else
+      this.detector[name].material = this.highlightMaterial
+
     for (const item in this.detector) {
-      if (item !== name)
-        this.detector[item].material = this.originalMaterial
+      if (item !== name) {
+        if (this.detector[item].material === this.sdLogMatertial)
+          this.sdLogMatertial.wireframe = false
+        else
+          this.detector[item].material = this.originalMaterial
+      }
     }
   }
 
@@ -189,18 +256,21 @@ export default class Base3D {
     this.detector[name].visible = flag
   }
 
+  // 弃用
   async importGdml(path: string) {
     this.cleanCurrentScene()
     const imgContent = await readBinaryFile(path)
     const blob = URL.createObjectURL(new Blob([imgContent.buffer]))
     const object: Group = await this.gdmlLoader.loadAsync(blob)
-    this.scene.add(object)
+    // this.scene.add(object)
     this.detectorGroup = object
     object.children.forEach((element) => {
-      this.detector[element.name] = element as Mesh
+      const el = element as Mesh
+      this.detector[element.name] = el
     })
   }
 
+  // 弃用
   async importObj(objPath: string, mtlPath: string) {
     this.cleanCurrentScene()
     const mtl = await this.mtlLoader.loadAsync(mtlPath)
@@ -216,19 +286,35 @@ export default class Base3D {
     })
   }
 
-  async importVrml(path: string, meshList: string[]) {
+  async importVrml(path: string, meshList: string[], randomColor = false) {
     this.cleanCurrentScene()
     const vrml = await this.vrmlLoader.loadAsync(path)
-    this.scene.add(vrml)
-    this.detectorGroup = vrml
-    vrml.children.forEach((element, index) => {
-      this.detector[meshList[index]] = element as Mesh
-      this.detector[meshList[index]].material = this.originalMaterial
+    const group = new Group()
+
+    this.detectorGroup = group.add(...vrml.children.slice(1, vrml.children.length))
+    this.world = vrml.children[0] as Mesh
+    this.scene.add(this.detectorGroup, this.world)
+
+    this.detector[meshList[0]] = this.world
+    this.detector[meshList[0]].material = this.worldMaterial
+    this.detectorGroup.children.forEach((element, index) => {
+      this.detector[meshList[index + 1]] = element as Mesh
+      if (randomColor) {
+        this.detector[meshList[index + 1]].material = new MeshStandardMaterial({
+          color: new Color(Math.random() * 0xFFFFFF),
+          transparent: true,
+          clipShadows: true,
+          side: DoubleSide,
+        })
+      }
+      else {
+        this.detector[meshList[index + 1]].material = this.originalMaterial
+      }
     })
   }
 
   cleanCurrentScene() {
-    this.scene.remove(this.detectorGroup)
+    this.scene.remove(this.detectorGroup, this.world)
     this.detector = {}
 
     if (this.vrmlScene)
@@ -239,17 +325,13 @@ export default class Base3D {
     this.axesHelper.visible = flag
   }
 
-  worldVisibleChange(worldName: string, flag: boolean) {
-    this.detector[worldName].visible = flag
+  worldVisibleChange(flag: boolean) {
+    this.world.visible = flag
   }
-
-  // positionChange(position: Vector3) {
-  //   this.detectorGroup.position.copy(position)
-  // }
 
   opacityChange(value: number) {
     for (const item in this.detector) {
-      const mat = this.detector[item].material as Material
+      const mat = this.detector[item].material as MeshStandardMaterial
       mat.opacity = value
     }
   }
@@ -262,6 +344,10 @@ export default class Base3D {
     this.dirLight.position.copy(value)
   }
 
+  particlePositionChange(value: Vector3) {
+    this.particle.position.copy(value)
+  }
+
   async viewVrmlScene(blob: string) {
     this.cleanCurrentScene()
     const obj = await this.vrmlLoader.loadAsync(blob)
@@ -271,5 +357,64 @@ export default class Base3D {
 
   autoRotateCamera(flag: boolean) {
     this.controls.autoRotate = flag
+  }
+
+  setRoughness(value: number) {
+    for (const item in this.detector) {
+      const mat = this.detector[item].material as MeshStandardMaterial
+      mat.roughness = value
+    }
+  }
+
+  setClip(flag: boolean) {
+    for (const item in this.detector) {
+      const mat = this.detector[item].material as MeshStandardMaterial
+      if (mat !== this.worldMaterial) {
+        mat.clippingPlanes = flag ? [...this.clipPlane] : []
+        mat.clipShadows = flag
+      }
+    }
+  }
+
+  setClipConstant(index: number, value: number) {
+    this.clipPlane[index].constant = value
+  }
+
+  size = new Vector3()
+  center = new Vector3()
+  box = new Box3()
+  fitCameraToSelection(camera: PerspectiveCamera, controls: OrbitControls, selection: any, fitOffset = 1.2) {
+    this.box.makeEmpty()
+    for (const object of selection)
+      this.box.expandByObject(object)
+
+    this.box.getSize(this.size)
+    this.box.getCenter(this.center)
+
+    const maxSize = Math.max(this.size.x, this.size.y, this.size.z)
+    const fitHeightDistance = maxSize / (2 * Math.atan(Math.PI * camera.fov / 360))
+    const fitWidthDistance = fitHeightDistance / camera.aspect
+    const distance = fitOffset * Math.max(fitHeightDistance, fitWidthDistance)
+
+    const direction = controls.target.clone()
+      .sub(camera.position)
+      .normalize()
+      .multiplyScalar(distance)
+
+    controls.maxDistance = distance * 20
+    controls.target.copy(this.center)
+
+    camera.near = distance / 1000
+    camera.far = distance * 100
+    camera.updateProjectionMatrix()
+
+    camera.position.copy(controls.target).sub(direction)
+
+    controls.update()
+  }
+
+  highLightSDLogVolume(name: string) {
+    if (this.detector[name])
+      this.detector[name].material = this.sdLogMatertial
   }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { fetch } from '@tauri-apps/api/http'
 import { open, save } from '@tauri-apps/api/dialog'
 import { BaseDirectory, copyFile, writeTextFile } from '@tauri-apps/api/fs'
@@ -10,37 +10,21 @@ import gsap from 'gsap'
 import Highcharts from 'highcharts'
 import Exporting from 'highcharts/modules/exporting'
 import { useRoute } from 'vue-router'
+import axios from 'axios'
+import Toasts from '../components/Toasts.vue'
 import UInput from '~/components/ui/UInput.vue'
 import USelect from '~/components/ui/USelect.vue'
 import { useStore } from '~/stores/store'
 import UCheck from '~/components/ui/UCheck.vue'
 
-const emits = defineEmits(['executeSimulate', 'simulationComplete'])
+const emits = defineEmits(['executeSimulate', 'simulationComplete', 'onLoading', 'simulationStop'])
 
 Exporting(Highcharts)
 
+const toast = ref()
 const route = useRoute()
 const store = useStore()
 const dataNumPerPage = 10
-const calDataEnergyList = $ref<number[]>([
-  0.662, 1.1732, 1.3325, 1.2178, 2.4469, 3.4427, 4.1111, 4.4396, 7.789, 8.6737,
-  9.640, 10.8586, 11.1207, 12.1294, 12.9914, 14.080,
-])
-const calResult = $ref<calibrateResult[]>([])
-for (let i = 0; i < 15; i++) {
-  calResult.push({
-    energy: calDataEnergyList[i],
-    efficiency: undefined,
-    delta: undefined,
-  })
-}
-const calPointList = $ref<calPoint[]>([])
-calPointList.push(
-  ...[
-    { energy: 1.166, efficiency: 0.001339 },
-    { energy: 1.324, efficiency: 0.001378 },
-  ],
-)
 const nucTable = ref(null)
 const dbBtn = ref(null)
 const calResultTable = ref(null)
@@ -53,6 +37,7 @@ const infoToDisplay = $ref([
   { name: '放射源', value: store.marco.particle.source },
   { name: '模拟总用时', value: store.totalTime },
 ])
+const searchInput = ref('')
 
 if (store.detectorTemplate === '0') {
   infoToDisplay.push(...[
@@ -73,32 +58,20 @@ let showNucTable = $ref(false)
 let enableMousePick = $ref(false)
 let fillPointIndex = -1
 const currentPageResult = computed(() => {
-  pageNum = Math.ceil(calResult.length / dataNumPerPage) || 1
+  pageNum = Math.ceil(store.calResultList.length / dataNumPerPage) || 1
   if (currentPage === pageNum) {
-    return calResult.slice(
+    return store.calResultList.slice(
       dataNumPerPage * (currentPage - 1),
-      calResult.length,
+      store.calResultList.length,
     )
   }
   else {
-    return calResult.slice(
+    return store.calResultList.slice(
       dataNumPerPage * (currentPage - 1),
       dataNumPerPage * (currentPage - 1) + 10,
     )
   }
 })
-
-interface calibrateResult {
-  energy?: number
-  efficiency?: number
-  fit?: number
-  delta?: number
-}
-
-interface calPoint {
-  energy?: number
-  efficiency?: number
-}
 
 interface nuclide {
   id: number
@@ -108,6 +81,17 @@ interface nuclide {
   halfLife: string
   halfLifeUnit: string
 }
+
+watch(searchInput, (val) => {
+  if (val === '') {
+    store.nucTableData = store.nucTableDataBackup
+  }
+  else {
+    store.nucTableData = store.nucTableDataBackup.filter(item =>
+      item.nuclide.toLowerCase().includes(val.toLowerCase()),
+    )
+  }
+})
 
 function toScientificNotation(num: number | undefined) {
   if (!num)
@@ -122,10 +106,11 @@ function toScientificNotation(num: number | undefined) {
     return `${Math.round(Number(arr[1]) * 10 ** Number(arr[3]))}e${arr[3]}`
 }
 
-onClickOutside(nucTable, () => {
+onClickOutside(nucTable, async () => {
   if (showNucTable) {
-    showNucTable = false
+    await nucTableTl.to(nucTable.value, { opacity: 0 }).to(nucTable.value, { visibility: 'hidden', duration: 0 })
     nucTableTl.kill()
+    showNucTable = false
   }
 }, { ignore: [dbBtn] })
 
@@ -140,10 +125,7 @@ onClickOutside(calPointTable, () => {
 })
 
 const fetchSpectrumData = async () => {
-  const response: any = await fetch('http://localhost:8080/spec', {
-    method: 'GET',
-    timeout: 30,
-  })
+  const response: any = await axios.post('http://localhost:8080/spec', store.specParams)
   store.spectrumData.countList = response.data.data
     .split(',')
     .map((item: any) => {
@@ -224,12 +206,13 @@ const createChart = () => {
             if (enableMousePick) {
               enableMousePick = false
               const dataContext = ev.point
-              calPointList[fillPointIndex].energy = parseFloat(
+              store.calPointList[fillPointIndex].energy = parseFloat(
                 dataContext.category as string,
               )
-              calPointList[fillPointIndex].efficiency
+              store.calPointList[fillPointIndex].efficiency
                 = dataContext.y! / parseFloat(store.marco.particle.number)
               fillPointIndex = -1
+              toast.value.showToast()
             }
           },
         },
@@ -306,9 +289,11 @@ const createFWHMChart = () => {
 }
 
 onMounted(async () => {
-  if (store.nuclideList.length === 0) {
-    const response: any = await fetch('http://localhost:8080/nuclideDb')
-    store.nuclideList = response.data.data
+  if (store.calResultList.length === 0)
+    store.initcalResult()
+  if (store.nucTableDataBackup.length === 0) {
+    const response: any = await axios.get('http://localhost:8080/nuclideDb')
+    store.nucTableDataBackup = store.nucTableData = response.data.data
   }
   if (route.query.fetchData) {
     await fetchSpectrumData()
@@ -319,28 +304,39 @@ onMounted(async () => {
   }
 })
 
-const openDatabaseForm = () => {
+const openDatabaseForm = async () => {
   if (showNucTable) {
     nucTableTl.to(nucTable.value, {
-      left: `${x.value.toString()}px`,
+      // left: `${x.value.toString()}px`,
       top: `${y.value.toString()}px`,
       duration: 0.2,
     })
+    nucTableTl.play()
   }
   else {
-    showNucTable = true
     nucTableTl.to(nucTable.value, {
       duration: 0,
       left: `${x.value.toString()}px`,
       top: `${y.value.toString()}px`,
-    })
+      visibility: 'visible',
+    }).to(nucTable.value, {
+      duration: 0.2,
+      opacity: 1,
+    }).from(nucTable.value, {
+      duration: 0.3,
+      scaleX: 0,
+      scaleY: 0,
+      transformOrigin: 'left top',
+      ease: 'back',
+    }, '<')
+    await nucTableTl.play()
+    showNucTable = true
   }
-  nucTableTl.play()
 }
 
 const selectNuc = (item: nuclide) => {
   if (selectCalDataIndex !== -1) {
-    calResult[selectCalDataIndex].energy = item.energy
+    store.calResultList[selectCalDataIndex].energy = item.energy
     showNucTable = false
     nucTableTl.kill()
   }
@@ -358,7 +354,7 @@ const nextPage = () => {
 
 const exportToCsv = async () => {
   let csv = 'Energy,Efficiency,Fit,Delta\n'
-  calResult.forEach((element) => {
+  store.calResultList.forEach((element) => {
     csv += `${element.energy},${element.efficiency ?? ''},${
       element.fit ?? ''
     }, ${element.delta ?? ''}\n`
@@ -378,14 +374,14 @@ const exportToCsv = async () => {
 
 const addCalResult = () => {
   if (selectCalDataIndex !== -1) {
-    calResult.splice((selectCalDataIndex + (currentPage - 1) * dataNumPerPage) + 1, 0, {
+    store.calResultList.splice((selectCalDataIndex + (currentPage - 1) * dataNumPerPage) + 1, 0, {
       energy: undefined,
       efficiency: undefined,
       delta: undefined,
     })
   }
   else {
-    calResult.push({
+    store.calResultList.push({
       energy: undefined,
       efficiency: undefined,
       delta: undefined,
@@ -395,8 +391,8 @@ const addCalResult = () => {
 
 const removeCalResult = () => {
   if (selectCalDataIndex !== -1)
-    calResult.splice(selectCalDataIndex + (currentPage - 1) * dataNumPerPage, 1)
-  else calResult.pop()
+    store.calResultList.splice(selectCalDataIndex + (currentPage - 1) * dataNumPerPage, 1)
+  else store.calResultList.pop()
 }
 
 const pickPoint = (index: number) => {
@@ -414,7 +410,7 @@ const pasteFromClipboard = async () => {
         = clipboardData[i].split(' ').length === 2
           ? clipboardData[i].split(' ')
           : clipboardData[i].split('\t')
-      calPointList.push({
+      store.calPointList.push({
         energy: isNaN(parseFloat(data[0])) ? undefined : parseFloat(data[0]),
         efficiency: isNaN(parseFloat(data[1])) ? undefined : parseFloat(data[1]),
       })
@@ -426,13 +422,13 @@ const pasteFromClipboard = async () => {
 
 const addCalPoint = () => {
   if (selectCalPointIndex !== -1) {
-    calPointList.splice(selectCalPointIndex + 1, 0, {
+    store.calPointList.splice(selectCalPointIndex + 1, 0, {
       energy: undefined,
       efficiency: undefined,
     })
   }
   else {
-    calPointList.push({
+    store.calPointList.push({
       energy: undefined,
       efficiency: undefined,
     })
@@ -441,33 +437,70 @@ const addCalPoint = () => {
 
 const removeCalPoint = () => {
   if (selectCalPointIndex !== -1)
-    calPointList.splice(selectCalPointIndex, 1)
-  else calPointList.pop()
+    store.calPointList.splice(selectCalPointIndex, 1)
+  else store.calPointList.pop()
 }
 
 const executeCalibrate = async () => {
-  // 效率刻度系数
-  const parametersList: Float32Array = await invoke('linear_fit', {
-    energy1: calPointList[0].energy,
-    energy2: calPointList[1].energy,
-    efficiency1: calPointList[0].efficiency,
-    efficiency2: calPointList[1].efficiency,
-  })
+  if (store.clibrateMethod === '线性') {
+    // 效率刻度系数
+    const parametersList: Float32Array = await invoke('linear_fit', {
+      energy1: store.calPointList[0].energy,
+      energy2: store.calPointList[1].energy,
+      efficiency1: store.calPointList[0].efficiency,
+      efficiency2: store.calPointList[1].efficiency,
+    })
 
-  // 效率反算
-  const energyList: number[] = []
-  calResult.forEach((element) => {
-    if (element.energy !== undefined)
-      energyList.push(element.energy)
-  })
+    // 效率反算
+    const energyList: number[] = []
+    store.calResultList.forEach((element) => {
+      if (element.energy !== undefined)
+        energyList.push(element.energy)
+    })
 
-  const effList: number[] = await invoke('eff_cal_line', {
-    a1: parametersList[0],
-    a2: parametersList[1],
-    energyList,
-  })
-  for (let i = 0; i < effList.length; i++)
-    calResult[i].efficiency = parseFloat(effList[i].toFixed(6))
+    const effList: number[] = await invoke('eff_cal_line', {
+      a1: parametersList[0],
+      a2: parametersList[1],
+      energyList,
+    })
+
+    for (let i = 0; i < effList.length; i++)
+      store.calResultList[i].efficiency = parseFloat(effList[i].toFixed(6))
+  }
+  else {
+    let energyList: number[] = []
+    const efficiencyList: number[] = []
+    store.calPointList.forEach((element) => {
+      if (element.energy !== undefined && element.efficiency !== undefined) {
+        energyList.push(element.energy)
+        efficiencyList.push(element.efficiency)
+      }
+    })
+
+    // 效率刻度系数
+    const parametersList: Float32Array = await invoke('quadratic_fit', {
+      en: energyList,
+      eff: efficiencyList,
+    })
+
+    // 效率反算
+    energyList = []
+    store.calResultList.forEach((element) => {
+      if (element.energy !== undefined)
+        energyList.push(element.energy)
+    })
+
+    const effList: number[] = await invoke('eff_cal_quad', {
+      a1: parametersList[0],
+      a2: parametersList[1],
+      a3: parametersList[2],
+      energyList,
+    })
+
+    for (let i = 0; i < effList.length; i++)
+      store.calResultList[i].efficiency = parseFloat(effList[i].toFixed(6))
+  }
+
   await nextTick()
   gsap.from('.resultEfficiency', {
     y: 10,
@@ -483,7 +516,7 @@ const executeCalibrate = async () => {
     <!-- 上部 -->
     <div flex flex-grow gap-2 class="max-h-1/2">
       <!-- 刻度结果表 -->
-      <div ref="calResultTable" w="1/2" flex flex-col bg-card rounded-md>
+      <div ref="calResultTable" w="1/2" flex flex-col bg-card rounded-md border="~ card-item">
         <!-- 表头 -->
         <div flex items-center justify-evenly px-2 py-1>
           <div class="w-1/5">
@@ -506,7 +539,7 @@ const executeCalibrate = async () => {
         <div ref="dbBtn" flex-grow overflow-y-auto flex flex-col class="no-scrollbar">
           <div
             v-for="(item, index) in currentPageResult"
-            :key="item.energy"
+            :key="index"
             flex
             flex-1
             items-center
@@ -552,7 +585,7 @@ const executeCalibrate = async () => {
               </div>
             </div>
             <div class="w-1/5 resultEfficiency">
-              {{ toScientificNotation(item.efficiency) }}
+              {{ store.showSciencedata === '1' ? toScientificNotation(item.efficiency) : item.efficiency }}
             </div>
             <div class="w-1/5">
               {{ item.fit }}
@@ -652,7 +685,7 @@ const executeCalibrate = async () => {
         </div>
       </div>
       <!-- 绘图 -->
-      <div w="1/2" bg-card rounded-md flex flex-col>
+      <div w="1/2" bg-card rounded-md flex flex-col border="~ card-item">
         <!-- 图操作 -->
         <div flex />
         <div id="myChart" flex-1 />
@@ -663,7 +696,7 @@ const executeCalibrate = async () => {
       <div w="1/2" flex gap-2>
         <div class="w-3/5" bg-card rounded-md>
           <!-- 刻度点表 -->
-          <div ref="calPointTable" w-full h-full flex flex-col bg-card rounded-md>
+          <div ref="calPointTable" w-full h-full flex flex-col bg-card rounded-md border="~ card-item">
             <!-- 表头 -->
             <div flex items-center justify-evenly px-2 py-1>
               <div w="1/6">
@@ -682,8 +715,8 @@ const executeCalibrate = async () => {
             <!-- 表身 -->
             <div flex-1 overflow-y-auto flex flex-col class="no-scrollbar">
               <div
-                v-for="(item, index) in calPointList"
-                :key="item.energy"
+                v-for="(item, index) in store.calPointList"
+                :key="index"
                 flex
                 flex-1
                 items-center
@@ -709,6 +742,7 @@ const executeCalibrate = async () => {
                     type="text"
                     text-sm
                     border-none
+                    appearance-none
                     w-16
                     p-0
                     focus:outline-none
@@ -724,6 +758,7 @@ const executeCalibrate = async () => {
                     type="text"
                     text-sm
                     border-none
+                    appearance-none
                     w-16
                     p-0
                     focus:outline-none
@@ -778,7 +813,7 @@ const executeCalibrate = async () => {
           </div>
         </div>
         <!-- 刻度执行 -->
-        <div class="w-2/5" bg-card rounded-md flex flex-col>
+        <div class="w-2/5" bg-card rounded-md flex flex-col border="~ card-item">
           <div grid-cols-3 grid items-center p-3 gap-2>
             <div flex justify-end>
               刻度方式
@@ -829,7 +864,7 @@ const executeCalibrate = async () => {
         </div>
       </div>
       <!-- 刻度信息展示 -->
-      <div w="1/2" bg-card rounded-md>
+      <div w="1/2" bg-card rounded-md border="~ card-item">
         <div v-if="store.lastSimulationInfo.totalParticles" grid grid-flow-row auto-rows-max gap-2 p-3>
           <div v-for="item in infoToDisplay" :key="item.name" flex w="1/2" items-center gap-2>
             <div flex justify-start w="1/2">
@@ -842,14 +877,16 @@ const executeCalibrate = async () => {
         </div>
       </div>
     </div>
+    <!-- 提示框 -->
+    <Toasts ref="toast" message="已选取刻度点" ml="1/3" />
   </div>
   <!-- 核素数据库 -->
-  <div v-show="showNucTable" ref="nucTable" absolute text-xs w-90 h-90 flex flex-col z-50 border="~ card-item" bg-card rounded-md shadow="xl back">
+  <div ref="nucTable" invisible op0 absolute text-xs w-90 h-90 flex flex-col z-50 border="~ card-item" bg-card rounded-md shadow="xl back">
     <!-- 表头 -->
     <div flex w-full px-1 py-1>
       <div flex bg-back rounded-md px-2 py="0.1rem" items-center gap-2 border="~ card-item">
         <div i-carbon-search />
-        <input bg-transparent p-0 focus:outline-none focus:ring-0>
+        <input v-model="searchInput" bg-transparent p-0 focus:outline-none focus:ring-0>
       </div>
     </div>
     <div grid grid-cols-5 items-center bg-card-item w-full justify-evenly px-2 py-1>
@@ -870,9 +907,9 @@ const executeCalibrate = async () => {
       </div>
     </div>
     <!-- 表内容 -->
-    <div flex-1 overflow-y-auto rounded-md rounded-t-none sb overflow-x-hidden>
+    <div v-if="showNucTable" flex-1 overflow-y-auto rounded-md rounded-t-none sb overflow-x-hidden>
       <div
-        v-for="(item, index) in store.nuclideList"
+        v-for="(item, index) in store.nucTableData"
         :key="item.id"
         grid
         grid-cols-5
@@ -886,7 +923,7 @@ const executeCalibrate = async () => {
         @click="selectNuc(item)"
       >
         <div>
-          {{ index + 1 }}
+          {{ item.id }}
         </div>
         <div>
           {{ item.nuclide }}

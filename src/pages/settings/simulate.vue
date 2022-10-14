@@ -11,8 +11,8 @@ const store = useStore()
       模拟
     </div>
     <div op60>
-      晶体名称(统计能量沉积的Volume)
+      晶体名称(统计能量沉积的Volume,仅在导入GDML模式下生效)
     </div>
-    <UInput v-model="store.cylinderName" h-10 rounded-md />
+    <UInput v-model="store.gdmlMarco.detector.sdLogVolName" h-10 rounded-md />
   </div>
 </template>
