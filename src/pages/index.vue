@@ -176,7 +176,7 @@ const importGdml = async (path: string) => {
   emits('onLoading', true)
   try {
     const vrmlData = await convertGdml(path)
-    await base3D.importVrml(vrmlData.vrmlurl, vrmlData.meshList, store.randomColor === '1')
+    // await base3D.importVrml(vrmlData.vrmlurl, vrmlData.meshList, store.randomColor === '1')
     store.currentSceneUrl = vrmlData.vrmlurl
     loadModelRenderSettings()
     store.specParams.name = store.gdmlMarco.detector.fileName = vrmlData.vrmlurl.split('/').pop()!.split('.')[0]
@@ -264,7 +264,7 @@ const executeSimulate = async () => {
     base3D.autoRotateCamera(false)
     emits('simulationComplete')
     router.push({ path: '/overview', query: { fetchData: 1 } })
-    await axios.post('http://localhost:8080/runResult', { name: store.gdmlMarco.detector.fileName })
+    // await axios.post('http://localhost:8080/runResult', { name: store.gdmlMarco.detector.fileName })
   }
 }
 

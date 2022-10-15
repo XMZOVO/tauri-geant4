@@ -14,7 +14,7 @@ const executeSimulate = () => {
 
 <template>
   <div flex flex-col gap-2 text-xs overflow-hidden>
-    <Collapse title="输出结果" item-count="3">
+    <Collapse title="输出结果" item-count="1">
       <div flex flex-col pt-3 gap-2 text-xs text-txt px-5 w-full>
         <div flex items-center justify-between>
           <div flex gap-1 items-center>

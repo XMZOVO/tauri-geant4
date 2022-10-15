@@ -143,7 +143,7 @@ export default class Base3D {
       this.canvas.parentElement!.clientWidth,
       this.canvas.parentElement!.clientHeight,
     )
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio))
     this.renderer.shadowMap.enabled = true
     this.renderer.localClippingEnabled = true
     this.renderer.outputEncoding = sRGBEncoding
@@ -194,7 +194,7 @@ export default class Base3D {
   async initModel() {
     this.cleanCurrentScene()
     const object: Group = await this.gdmlLoader.loadAsync(
-      '/assets/model/gdml/wtest.gdml',
+      '/assets/model/gdml/init.gdml',
     )
     const group = new Group()
     this.detectorGroup = group.add(...object.children.slice(0, -1))
@@ -290,9 +290,8 @@ export default class Base3D {
     this.cleanCurrentScene()
     const vrml = await this.vrmlLoader.loadAsync(path)
     const group = new Group()
-
-    this.detectorGroup = group.add(...vrml.children.slice(1, vrml.children.length))
     this.world = vrml.children[0] as Mesh
+    this.detectorGroup = group.add(...vrml.children.slice(1, vrml.children.length))
     this.scene.add(this.detectorGroup, this.world)
 
     this.detector[meshList[0]] = this.world

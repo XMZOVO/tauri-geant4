@@ -9,7 +9,7 @@ import { onClickOutside, useMouse } from '@vueuse/core'
 import gsap from 'gsap'
 import Highcharts from 'highcharts'
 import Exporting from 'highcharts/modules/exporting'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import Toasts from '../components/Toasts.vue'
 import UInput from '~/components/ui/UInput.vue'
@@ -23,6 +23,7 @@ Exporting(Highcharts)
 
 const toast = ref()
 const route = useRoute()
+const router = useRouter()
 const store = useStore()
 const dataNumPerPage = 10
 const nucTable = ref(null)
@@ -38,6 +39,7 @@ const infoToDisplay = $ref([
   { name: '模拟总用时', value: store.totalTime },
 ])
 const searchInput = ref('')
+const chartNav = $ref([{ name: '能谱', path: '/overview/' }, { name: '展宽谱', path: '/overview/fwhm' }, { name: '刻度曲线', path: '/overview/curve' }])
 
 if (store.detectorTemplate === '0') {
   infoToDisplay.push(...[
@@ -289,6 +291,7 @@ const createFWHMChart = () => {
 }
 
 onMounted(async () => {
+  store.selectedChart = 0
   if (store.calResultList.length === 0)
     store.initcalResult()
   if (store.nucTableDataBackup.length === 0) {
@@ -334,11 +337,12 @@ const openDatabaseForm = async () => {
   }
 }
 
-const selectNuc = (item: nuclide) => {
+const selectNuc = async (item: nuclide) => {
   if (selectCalDataIndex !== -1) {
     store.calResultList[selectCalDataIndex].energy = item.energy
-    showNucTable = false
+    await nucTableTl.to(nucTable.value, { opacity: 0 }).to(nucTable.value, { visibility: 'hidden', duration: 0 })
     nucTableTl.kill()
+    showNucTable = false
   }
 }
 
@@ -393,6 +397,11 @@ const removeCalResult = () => {
   if (selectCalDataIndex !== -1)
     store.calResultList.splice(selectCalDataIndex + (currentPage - 1) * dataNumPerPage, 1)
   else store.calResultList.pop()
+}
+
+const navToChart = (index: number) => {
+  router.push(chartNav[index].path)
+  store.selectedChart = index
 }
 
 const pickPoint = (index: number) => {
@@ -464,6 +473,14 @@ const executeCalibrate = async () => {
       energyList,
     })
 
+    const curPoint = Array.from({ length: 4096 }, (_, index) => index)
+    store.calValue = await invoke('eff_cal_line', {
+      a1: parametersList[0],
+      a2: parametersList[1],
+      a3: parametersList[2],
+      energyList: curPoint,
+    })
+
     for (let i = 0; i < effList.length; i++)
       store.calResultList[i].efficiency = parseFloat(effList[i].toFixed(6))
   }
@@ -497,6 +514,14 @@ const executeCalibrate = async () => {
       energyList,
     })
 
+    const curPoint = Array.from({ length: 4096 }, (_, index) => index)
+    store.calValue = await invoke('eff_cal_quad', {
+      a1: parametersList[0],
+      a2: parametersList[1],
+      a3: parametersList[2],
+      energyList: curPoint,
+    })
+
     for (let i = 0; i < effList.length; i++)
       store.calResultList[i].efficiency = parseFloat(effList[i].toFixed(6))
   }
@@ -508,6 +533,11 @@ const executeCalibrate = async () => {
     duration: 0.5,
     stagger: 0.03,
   })
+
+  if (store.showCalibrateCurve) {
+    store.selectedChart = 2
+    router.push({ path: '/overview/curve', query: { freshCurve: '1' } })
+  }
 }
 </script>
 
@@ -518,7 +548,7 @@ const executeCalibrate = async () => {
       <!-- 刻度结果表 -->
       <div ref="calResultTable" w="1/2" flex flex-col bg-card rounded-md border="~ card-item">
         <!-- 表头 -->
-        <div flex items-center justify-evenly px-2 py-1>
+        <div flex items-center justify-evenly px-2 py-2>
           <div class="w-1/5">
             序号
           </div>
@@ -543,7 +573,7 @@ const executeCalibrate = async () => {
             flex
             flex-1
             items-center
-            px-2
+            px-3
             py-1
             class="detectorListItem"
             :class="[
@@ -561,7 +591,7 @@ const executeCalibrate = async () => {
             </div>
             <div flex items-center w="1/5">
               <input
-                v-model="item.energy"
+                v-model.number="item.energy"
                 type="text"
                 text-sm
                 border-none
@@ -687,8 +717,16 @@ const executeCalibrate = async () => {
       <!-- 绘图 -->
       <div w="1/2" bg-card rounded-md flex flex-col border="~ card-item">
         <!-- 图操作 -->
-        <div flex />
-        <div id="myChart" flex-1 />
+        <div flex p-2>
+          <div v-for="item, index in chartNav" :key="item.name" bg-input py-1 px-2 :class="[{ 'rounded-md rounded-r-none': index === 0 }, { 'rounded-md rounded-l-none': index === 2 }, { op60: index !== store.selectedChart }]" hover="bg-input-hover" @click="navToChart(index)">
+            {{ item.name }}
+          </div>
+        </div>
+        <RouterView v-slot="{ Component }" v-model="store.calValue">
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </RouterView>
       </div>
     </div>
     <!-- 下部 -->
@@ -698,7 +736,7 @@ const executeCalibrate = async () => {
           <!-- 刻度点表 -->
           <div ref="calPointTable" w-full h-full flex flex-col bg-card rounded-md border="~ card-item">
             <!-- 表头 -->
-            <div flex items-center justify-evenly px-2 py-1>
+            <div flex items-center justify-evenly px-3 py-2>
               <div w="1/6">
                 序号
               </div>
@@ -721,7 +759,7 @@ const executeCalibrate = async () => {
                 flex-1
                 items-center
                 max-h-9
-                px-2
+                px-3
                 py-1
                 class="detectorListItem"
                 :class="[

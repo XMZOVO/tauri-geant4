@@ -113,7 +113,7 @@ export const useStore = defineStore('stores', {
         enableTajectory: false,
       },
     } as Marco,
-    gdmlMarco: { detector: { sdLogVolName: 'NaIDetector' } } as GdmlMarco,
+    gdmlMarco: { detector: { sdLogVolName: 'Cylinder' } } as GdmlMarco,
     lastSimulationInfo: {} as LastSimulationInfo,
     detectorTemplate: '0',
     totalTime: '',
@@ -132,7 +132,7 @@ export const useStore = defineStore('stores', {
       { energy: 1.324, efficiency: 0.001378 }] as calPoint[],
     specParams: {
       name: 'result',
-      ch: '1024',
+      ch: '4096',
       minEn: '0',
       maxEn: '2.3',
       fA: '-0.0137257',
@@ -148,6 +148,9 @@ export const useStore = defineStore('stores', {
     lineSegmentsPerCircle: '200',
     currentSceneUrl: '',
     structureList: [] as string[],
+
+    selectedChart: 0,
+    calValue: [],
 
     activeSettingPage: 0,
     showSciencedata: '1',
