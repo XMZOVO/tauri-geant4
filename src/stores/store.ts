@@ -18,6 +18,7 @@ interface NaIDetect {
   reflectST: string
   reflectMat: string
   pmtT: string
+  sdVolName: string
 }
 
 interface GdmlDetector {
@@ -124,8 +125,8 @@ export const useStore = defineStore('stores', {
     dirLightPos: { x: '0', y: '10', z: '0' } as Pos,
 
     calDataEnergyList: [
-      0.662, 1.1732, 1.3325, 1.2178, 2.4469, 3.4427, 4.1111, 4.4396, 7.789, 8.6737,
-      9.640, 10.8586, 11.1207, 12.1294, 12.9914, 14.080,
+      0.662, 1.1732, 1.3325, 0.04012, 0.12178, 0.34428, 0.03952, 1.40801, 0.0454, 0.96413,
+      1.11212, 0.7789, 1.08591, 0.2447, 0.86739, 0.41111,
     ],
     calResultList: [] as calibrateResult[],
     calPointList: [{ energy: 1.166, efficiency: 0.001339 },
@@ -134,7 +135,7 @@ export const useStore = defineStore('stores', {
       name: 'result',
       ch: '4096',
       minEn: '0',
-      maxEn: '2.3',
+      maxEn: '2.0',
       fA: '-0.0137257',
       fB: '0.0739501',
       fC: '-0.152982',
@@ -162,6 +163,9 @@ export const useStore = defineStore('stores', {
     autoRotate: false,
   }),
   actions: {
+    setNaISDVolName() {
+      this.marco.detector.sdVolName = this.gdmlMarco.detector.sdLogVolName
+    },
     setGdmlMarco() {
       this.gdmlMarco.particle = this.marco.particle
       this.gdmlMarco.runtimeInfo = this.marco.runtimeInfo

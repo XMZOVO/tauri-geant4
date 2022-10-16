@@ -6,7 +6,7 @@ import { useStore } from '~/stores/store'
 const router = useRouter()
 const store = useStore()
 const navBarItems = $ref([
-  { name: '模拟', path: '/settings/simulate' },
+  { name: '模拟', path: '/settings/' },
   { name: '渲染', path: '/settings/render' },
   { name: '输出信息', path: '/settings/output' },
   { name: '结果', path: '/settings/result' },

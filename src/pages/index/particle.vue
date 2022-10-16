@@ -6,7 +6,7 @@ import USelect from '~/components/ui/USelect.vue'
 
 const emit = defineEmits(['particlePositionChange'])
 const store = useStore()
-const sourceList = $ref(['Co60', 'Cs137', 'Eu152'])
+const sourceList = $ref(['Co60', 'Cs137', 'Eu152', 'Am241'])
 const particlePositionChange = () => {
   emit('particlePositionChange', store.marco.particle.pos)
 }

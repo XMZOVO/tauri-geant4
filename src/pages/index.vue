@@ -247,7 +247,10 @@ const executeSimulate = async () => {
     })
   }
   else if (store.detectorTemplate === '0') {
-    await axios.post('http://localhost:8080/g4', store.marco, { timeout: 1e5 }).catch((err) => {
+    store.setNaISDVolName()
+    await axios.post('http://localhost:8080/g4', store.marco, { timeout: 1e5 }).then((res) => {
+      store.specParams.name = res.data.fileName
+    }).catch((err) => {
       if (err.request.status === 500)
         erro = err
     })

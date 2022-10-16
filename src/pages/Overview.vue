@@ -59,6 +59,7 @@ let pageNum = $ref(1)
 let showNucTable = $ref(false)
 let enableMousePick = $ref(false)
 let fillPointIndex = -1
+let chart
 const currentPageResult = computed(() => {
   pageNum = Math.ceil(store.calResultList.length / dataNumPerPage) || 1
   if (currentPage === pageNum) {
@@ -126,7 +127,7 @@ onClickOutside(calPointTable, () => {
     selectCalPointIndex = -1
 })
 
-const fetchSpectrumData = async () => {
+async function fetchSpectrumData() {
   const response: any = await axios.post('http://localhost:8080/spec', store.specParams)
   store.spectrumData.countList = response.data.data
     .split(',')
@@ -145,8 +146,8 @@ const fetchSpectrumData = async () => {
     })
 }
 
-const createChart = () => {
-  const chart = Highcharts.chart({
+async function createChart() {
+  chart = Highcharts.chart({
     chart: {
       animation: false,
       renderTo: 'myChart',
@@ -192,7 +193,7 @@ const createChart = () => {
     },
     xAxis: {
       visible: false,
-      categories: store.spectrumData.energyList.map(item => item.toFixed(3)),
+      categories: store.spectrumData.energyList.map(item => item.toFixed(4)),
     },
     accessibility: {
       enabled: false,
@@ -223,81 +224,17 @@ const createChart = () => {
   })
 }
 
-const createFWHMChart = () => {
-  const chart = Highcharts.chart({
-    chart: {
-      animation: false,
-      renderTo: 'fwhmChart',
-      panning: { enabled: true },
-      panKey: 'shift',
-      backgroundColor: 'transparent',
-      zooming: {
-        type: 'x',
-        resetButton: {
-          theme: {
-            fill: '#545454',
-            style: {
-              color: '#E5E5E5',
-            },
-            states: {
-              hover: {
-                fill: '#656565',
-                style: {
-                  color: '#E5E5E5',
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    legend: {
-      enabled: false,
-    },
-    plotOptions: {
-      column: {
-        borderWidth: 0,
-        groupPadding: 0,
-        pointPadding: 0,
-        edgeWidth: 0,
-        animation: false,
-      },
-    },
-    yAxis: {
-      title: { text: '' },
-      gridLineWidth: 0,
-      minorGridLineWidth: 0,
-    },
-    xAxis: {
-      visible: false,
-      categories: store.spectrumData.energyList.map(item => item.toFixed(3)),
-    },
-    accessibility: {
-      enabled: false,
-    },
-    navigation: { buttonOptions: { enabled: false } },
-    series: [
-      {
-        type: 'column',
-        name: '计数',
-        data: store.spectrumData.fwhmCountList,
-        events: {
-          click: (event) => {
-          },
-        },
-      },
-    ],
-  })
-}
-
 onMounted(async () => {
   store.selectedChart = 0
+  // 获取数据库
   if (store.calResultList.length === 0)
     store.initcalResult()
   if (store.nucTableDataBackup.length === 0) {
     const response: any = await axios.get('http://localhost:8080/nuclideDb')
     store.nucTableDataBackup = store.nucTableData = response.data.data
   }
+
+  // 获取谱数据
   if (route.query.fetchData) {
     await fetchSpectrumData()
     createChart()
@@ -473,6 +410,7 @@ const executeCalibrate = async () => {
       energyList,
     })
 
+    // 刻度曲线
     const curPoint = Array.from({ length: 4096 }, (_, index) => index)
     store.calValue = await invoke('eff_cal_line', {
       a1: parametersList[0],
@@ -514,6 +452,7 @@ const executeCalibrate = async () => {
       energyList,
     })
 
+    // 刻度曲线
     const curPoint = Array.from({ length: 4096 }, (_, index) => index)
     store.calValue = await invoke('eff_cal_quad', {
       a1: parametersList[0],
@@ -525,7 +464,6 @@ const executeCalibrate = async () => {
     for (let i = 0; i < effList.length; i++)
       store.calResultList[i].efficiency = parseFloat(effList[i].toFixed(6))
   }
-
   await nextTick()
   gsap.from('.resultEfficiency', {
     y: 10,
@@ -548,7 +486,7 @@ const executeCalibrate = async () => {
       <!-- 刻度结果表 -->
       <div ref="calResultTable" w="1/2" flex flex-col bg-card rounded-md border="~ card-item">
         <!-- 表头 -->
-        <div flex items-center justify-evenly px-2 py-2>
+        <div flex items-center justify-evenly px-2 py-2 font-bold>
           <div class="w-1/5">
             序号
           </div>
@@ -736,7 +674,7 @@ const executeCalibrate = async () => {
           <!-- 刻度点表 -->
           <div ref="calPointTable" w-full h-full flex flex-col bg-card rounded-md border="~ card-item">
             <!-- 表头 -->
-            <div flex items-center justify-evenly px-3 py-2>
+            <div flex items-center justify-evenly px-3 py-2 font-bold>
               <div w="1/6">
                 序号
               </div>
@@ -902,11 +840,14 @@ const executeCalibrate = async () => {
         </div>
       </div>
       <!-- 刻度信息展示 -->
-      <div w="1/2" bg-card rounded-md border="~ card-item">
-        <div v-if="store.lastSimulationInfo.totalParticles" grid grid-flow-row auto-rows-max gap-2 p-3>
+      <div w="1/2" bg-card rounded-md border="~ card-item" p-5 py-3>
+        <div text-md font-bold pb-3>
+          本次模拟信息
+        </div>
+        <div v-if="store.lastSimulationInfo.totalParticles" grid grid-flow-row auto-rows-max gap-3>
           <div v-for="item in infoToDisplay" :key="item.name" flex w="1/2" items-center gap-2>
-            <div flex justify-start w="1/2">
-              {{ `${item.name}:` }}
+            <div flex justify-start w="1/2" op60>
+              {{ `${item.name}` }}
             </div>
             <div w="1/2" flex justify-start>
               {{ item.value }}

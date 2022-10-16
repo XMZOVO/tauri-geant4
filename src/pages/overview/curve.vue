@@ -29,11 +29,6 @@ onMounted(() => {
     createCurveChart(store.calValue)
 })
 
-// onActivated(() => {
-//   if (route.query.freshCurve)
-//     createCurveChart(store.calValue)
-// })
-
 function createCurveChart(calValue = []) {
   chart = Highcharts.chart({
     chart: {

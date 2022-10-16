@@ -69,10 +69,6 @@ function createFWHMChart() {
         type: 'column',
         name: '计数',
         data: store.spectrumData.fwhmCountList,
-        events: {
-          click: (event) => {
-          },
-        },
       },
     ],
   })
