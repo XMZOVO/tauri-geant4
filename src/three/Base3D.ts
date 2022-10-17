@@ -73,7 +73,7 @@ export default class Base3D {
   })
 
   sdLogMatertial = new MeshStandardMaterial({
-    color: new Color(0x055555),
+    color: new Color(0xFA9C1E),
     transparent: true,
     roughness: 0.5,
     side: DoubleSide,
