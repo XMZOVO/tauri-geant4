@@ -322,8 +322,8 @@ const autoRotate = () => {
           <PopBtn show-menu="1" tip="视图" icon="i-lucide-view" />
           <PopBtn show-menu="1" tip="切面" icon="i-iconoir-3d-add-hole">
             <div flex flex-col text-sm w-full h-full items-center>
-              <div flex flex-1 items-center gap-4 hover="bg-input" rounded="b-none md" p-2 py-1 w-full justify-start>
-                <UCheck v-model="store.clipMod" @update:model-value="setClip" />
+              <div flex flex-1 items-center gap-4 hover="bg-input" rounded="b-none md" p-2 py-1 w-full justify-start @click="store.clipMod = !store.clipMod; setClip()">
+                <UCheck v-model="store.clipMod" />
                 <div>
                   启用切面
                 </div>

@@ -191,6 +191,9 @@ export const useStore = defineStore('stores', {
         })
       }
     },
+    trimSdLogVolName() {
+      this.gdmlMarco.detector.sdLogVolName = this.gdmlMarco.detector.sdLogVolName.trim()
+    },
   },
   getters: {},
 })

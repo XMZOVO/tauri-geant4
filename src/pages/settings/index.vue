@@ -3,6 +3,10 @@ import UInput from '~/components/ui/UInput.vue'
 import { useStore } from '~/stores/store'
 
 const store = useStore()
+
+const trimName = () => {
+  store.trimSdLogVolName()
+}
 </script>
 
 <template>
@@ -13,6 +17,6 @@ const store = useStore()
     <div op60>
       晶体名称(统计能量沉积的Volume,仅在导入GDML模式下生效)
     </div>
-    <UInput v-model="store.gdmlMarco.detector.sdLogVolName" h-10 rounded-md />
+    <UInput v-model="store.gdmlMarco.detector.sdLogVolName" h-10 rounded-md @update:model-value="trimName" />
   </div>
 </template>

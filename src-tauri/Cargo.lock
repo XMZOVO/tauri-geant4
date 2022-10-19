@@ -2977,9 +2977,7 @@ dependencies = [
 name = "tauri-g4"
 version = "0.0.0"
 dependencies = [
- "cocoa",
  "nalgebra",
- "objc",
  "serde",
  "serde_json",
  "tauri",

@@ -22,6 +22,9 @@ const value = useVModel(props, 'modelValue', emits)
 </script>
 
 <template>
-  <input v-model="value" cursor-ew-resize :step="step" :min="min" :max="max" type="range" appearance-none bg="card-item" rounded-full h-3 w-full>
+  <input
+    v-model="value" cursor-ew-resize :step="step" :min="min" :max="max"
+    type="range" appearance-none bg="card-item" rounded-full h-3 w-full
+  >
 </template>
 

@@ -28,6 +28,7 @@ onMounted(() => {
     duration: 0.3,
     scaleX: 0,
     scaleY: 0,
+    opacity: 0,
     transformOrigin: 'center bottom',
     ease: 'back',
   })
