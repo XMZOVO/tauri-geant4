@@ -25,6 +25,15 @@ const executeSimulate = () => {
           </div>
           <UCheck v-model="store.marco.runtimeInfo.enableTajectory" />
         </div>
+        <div flex items-center justify-between>
+          <div flex gap-1 items-center>
+            <div>
+              实时输出
+            </div>
+            <div op60 hover="op100" text-red i-carbon-warning-filled />
+          </div>
+          <UCheck v-model="store.marco.runtimeInfo.enableTajectory" />
+        </div>
       </div>
     </Collapse>
     <button

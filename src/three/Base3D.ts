@@ -30,6 +30,7 @@ import { GDMLLoader } from 'threejs-gdml-loader'
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { VRMLLoader } from 'three/examples/jsm/loaders/VRMLLoader'
+import gsap from 'gsap'
 interface Sizes {
   width: number
   height: number
@@ -408,6 +409,8 @@ export default class Base3D {
     camera.updateProjectionMatrix()
 
     camera.position.copy(controls.target).sub(direction)
+
+    gsap.from(this.camera.position, { x: camera.position.x * 3, y: camera.position.y * 3, z: -camera.position.z, duration: 1.3, ease: 'circ' })
 
     controls.update()
   }

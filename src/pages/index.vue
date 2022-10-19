@@ -319,7 +319,11 @@ const autoRotate = () => {
       <!-- interactiveBar -->
       <div ref="interactiveBar" absolute bottom="3" w-full px-20 select-none>
         <div flex items-center justify-between px-10 bg-card-stripDark w-full h-12 p-3 rounded-full border="card-item ~" shadow-xl>
-          <PopBtn show-menu="1" tip="视图" icon="i-lucide-view" />
+          <PopBtn show-menu="1" tip="视图" icon="i-lucide-view">
+            <div flex flex-col text-sm w-full h-full items-center>
+              <div flex flex-1 items-center gap-4 hover="bg-input" rounded-md p-2 py-1 w-full justify-start />
+            </div>
+          </PopBtn>
           <PopBtn show-menu="1" tip="切面" icon="i-iconoir-3d-add-hole">
             <div flex flex-col text-sm w-full h-full items-center>
               <div flex flex-1 items-center gap-4 hover="bg-input" rounded="b-none md" p-2 py-1 w-full justify-start @click="store.clipMod = !store.clipMod; setClip()">

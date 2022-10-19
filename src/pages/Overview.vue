@@ -30,7 +30,9 @@ const nucTable = ref(null)
 const dbBtn = ref(null)
 const calResultTable = ref(null)
 const calPointTable = ref(null)
+const chartSkeleton = ref(null)
 const { x, y } = useMouse()
+const chartSkTl = gsap.timeline({ paused: true, defaults: { duration: 0.5 } })
 const nucTableTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
 const infoToDisplay = $ref([
   { name: '模拟总粒子数', value: store.marco.particle.number },
@@ -236,8 +238,11 @@ onMounted(async () => {
 
   // 获取谱数据
   if (route.query.fetchData) {
+    chartSkTl.to(chartSkeleton.value, { visibility: 'visible' }).to(chartSkeleton.value, { background: '#3D3D3D', ease: 'sine', duration: 0.6, repeat: -1, yoyo: true }, '<')
+    chartSkTl.play()
     await fetchSpectrumData()
     createChart()
+    chartSkTl.revert()
   }
   else if (store.spectrumData.countList) {
     createChart()
@@ -653,7 +658,10 @@ const executeCalibrate = async () => {
         </div>
       </div>
       <!-- 绘图 -->
-      <div w="1/2" bg-card rounded-md flex flex-col border="~ card-item">
+      <div w="1/2" bg-card rounded-md flex flex-col border="~ card-item" relative>
+        <div ref="chartSkeleton" invisible w-full h-full bg-back absolute z-50 justify-center items-center flex rounded-md>
+          <div id="skIcon" i-carbon-chart-cluster-bar w="1/6" h="1/6" />
+        </div>
         <!-- 图操作 -->
         <div flex p-2>
           <div v-for="item, index in chartNav" :key="item.name" bg-input py-1 px-2 :class="[{ 'rounded-md rounded-r-none': index === 0 }, { 'rounded-md rounded-l-none': index === 2 }, { op60: index !== store.selectedChart }]" hover="bg-input-hover" @click="navToChart(index)">
@@ -830,11 +838,8 @@ const executeCalibrate = async () => {
           </div>
           <div flex-1 />
           <div flex gap-2 items-center w-full justify-end p-3>
-            <button bg-input hover="bg-input-hover" px-2 py-1 rounded-md @click="executeCalibrate">
+            <button bg-card-item hover="bg-input" px-2 py-1 rounded-md @click="executeCalibrate">
               刻度
-            </button>
-            <button bg-input hover="bg-input-hover" px-2 py-1 rounded-md>
-              取消刻度
             </button>
           </div>
         </div>
