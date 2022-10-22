@@ -3,12 +3,14 @@ interface Marco {
   detector: NaIDetect
   particle: Particle
   runtimeInfo: RuntimeInfo
+  additionalInfo: AdditionalInfo
 }
 
 interface GdmlMarco {
   detector: GdmlDetector
   particle: Particle
   runtimeInfo: RuntimeInfo
+  additionalInfo: AdditionalInfo
 }
 
 interface NaIDetect {
@@ -31,6 +33,7 @@ interface Particle {
   number: string
   pos: Pos
   dir: Pos
+  type: string
 }
 
 interface RuntimeInfo {
@@ -38,6 +41,11 @@ interface RuntimeInfo {
   printModulo: string
   analysisVb: string
   enableTajectory: boolean
+}
+
+interface AdditionalInfo {
+  title: string
+  description: string
 }
 
 interface LastSimulationInfo {
@@ -106,12 +114,17 @@ export const useStore = defineStore('stores', {
         number: '1000000',
         pos: { x: '0.0', y: '0.0', z: '50.0' },
         dir: { x: '0.0', y: '0.0', z: '-1.0' },
+        type: 'point',
       },
       runtimeInfo: {
         trackingVb: '0',
         printModulo: '100000',
         analysisVb: '0',
         enableTajectory: false,
+      },
+      additionalInfo: {
+        title: 'test1',
+        description: 'test1',
       },
     } as Marco,
     gdmlMarco: { detector: { sdLogVolName: 'Cylinder' } } as GdmlMarco,
@@ -169,6 +182,7 @@ export const useStore = defineStore('stores', {
     setGdmlMarco() {
       this.gdmlMarco.particle = this.marco.particle
       this.gdmlMarco.runtimeInfo = this.marco.runtimeInfo
+      this.gdmlMarco.additionalInfo = this.marco.additionalInfo
     },
     setLastSimulationInfo() {
       if (this.detectorTemplate === '-1')

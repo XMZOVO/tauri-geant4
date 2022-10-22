@@ -21,6 +21,7 @@ const navTab = ref(null)
 const toast = ref()
 const interactiveBar = ref()
 const displaySimuInfoCard = ref(null)
+const canvasTL = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
 const navTabTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
 const cardTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
 const simuInfoTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
@@ -50,12 +51,14 @@ watchEffect(() => {
 
 onMounted(async () => {
   cardTl.from('.card', { x: '100%', stagger: 0.1, delay: 0.4 }).from(interactiveBar.value, { y: '150%', duration: 0.3 }, '+=0.1')
+  simuInfoTl.to(displaySimuInfoCard.value, { bottom: 0, duration: 0.3 })
   cardTl.play()
   // 初始化three
   base3D = new Base3D(ThreeDom.value)
   await base3D.init()
   await loadModelRenderSettings()
-  gsap.from('.canvas', { opacity: 0, duration: 1 })
+  canvasTL.from('.canvas', { opacity: 0, duration: 1 })
+  canvasTL.play()
   // 初始化websocket
   const url = 'ws://localhost:8080/ws'
   ws = new WebSocket(url)
@@ -76,7 +79,7 @@ onUnmounted(() => {
 })
 
 function websocketOnMessage(e: any) {
-  duringSimulationInfo.unshift(e.data)
+  duringSimulationInfo.unshift(e.data.trim())
 }
 
 async function freshStructureList() {
@@ -106,6 +109,25 @@ async function loadModelRenderSettings() {
   base3D.setRoughness(parseFloat(store.roughness))
   base3D.particlePositionChange(new Vector3(parseFloat(store.marco.particle.pos.x), parseFloat(store.marco.particle.pos.y), parseFloat(store.marco.particle.pos.z)))
   base3D.fitCameraToSelection(base3D.camera, base3D.controls, base3D.detectorGroup.children, 1.8)
+}
+
+async function killProcess() {
+  await axios.post('http://localhost:8080/killProcess')
+  cardTl.play()
+  simuInfoTl.reverse()
+  base3D.autoRotateCamera(false)
+  emits('simulationStop')
+  setTimeout(() => {
+    toast.value.showToast()
+  }, 300)
+}
+
+function getNodes(str: string, start: string, end: string) {
+  const reg = new RegExp(`${start}(.+?)${end}`, 'g')
+  const result = str.match(reg)!.map(item => item.replace(start, '').replace(end, ''))
+  if (result)
+    return result
+  else return []
 }
 
 const selecListItem = (index: number) => {
@@ -143,14 +165,6 @@ const changeTemplate = async (index: number) => {
   loadModelRenderSettings()
 }
 
-function getNodes(str: string, start: string, end: string) {
-  const reg = new RegExp(`${start}(.+?)${end}`, 'g')
-  const result = str.match(reg)!.map(item => item.replace(start, '').replace(end, ''))
-  if (result)
-    return result
-  else return []
-}
-
 const convertGdml = async (path: string) => {
   const fileContent = await readTextFile(path)
   const newFContent = fileContent.replace('http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd', '../gdml.xsd')
@@ -179,7 +193,7 @@ const importGdml = async (path: string) => {
     // await base3D.importVrml(vrmlData.vrmlurl, vrmlData.meshList, store.randomColor === '1')
     store.currentSceneUrl = vrmlData.vrmlurl
     loadModelRenderSettings()
-    store.specParams.name = store.gdmlMarco.detector.fileName = vrmlData.vrmlurl.split('/').pop()!.split('.')[0]
+    store.gdmlMarco.detector.fileName = vrmlData.vrmlurl.split('/').pop()!.split('.')[0]
   }
   catch {
     emits('onLoading', false)
@@ -218,7 +232,6 @@ const viewVrmlScene = async (path: string) => {
   gdmlStructureList.splice(0, gdmlStructureList.length)
 }
 
-// 计算用时
 const getUseTime = (startTime: number, endTime: number) => {
   const useTime = endTime - startTime
   const hour = Math.floor(useTime / 3600000)
@@ -231,26 +244,23 @@ const executeSimulate = async () => {
   duringSimulationInfo.splice(0, duringSimulationInfo.length) // 清空runtime信息
   cardTl.reverse()
   emits('executeSimulate')
-  await simuInfoTl.to(displaySimuInfoCard.value, { bottom: 0, duration: 0.3 }).play()
-
+  await simuInfoTl.play()
   base3D.autoRotateCamera(true)
-
   const startTime = new Date().getTime()
 
   let erro
+  let response: any
   if (store.detectorTemplate === '-1') {
     store.setGdmlMarco()
 
-    await axios.post('http://localhost:8080/g4gdml', store.gdmlMarco, { timeout: 1e5 }).catch((err) => {
+    response = await axios.post('http://localhost:8080/g4gdml', store.gdmlMarco, { timeout: 1e5 }).catch((err) => {
       if (err.request.status === 500)
         erro = err
     })
   }
-  else if (store.detectorTemplate === '0') {
+  else {
     store.setNaISDVolName()
-    await axios.post('http://localhost:8080/g4', store.marco, { timeout: 1e5 }).then((res) => {
-      store.specParams.name = res.data.fileName
-    }).catch((err) => {
+    response = await axios.post('http://localhost:8080/g4', store.marco, { timeout: 1e5 }).catch((err) => {
       if (err.request.status === 500)
         erro = err
     })
@@ -262,24 +272,21 @@ const executeSimulate = async () => {
 
     // 处理本次模拟信息统计
     store.setLastSimulationInfo()
-
-    cardTl.revert()
+    cardTl.play()
     base3D.autoRotateCamera(false)
-    emits('simulationComplete')
-    router.push({ path: '/overview', query: { fetchData: 1 } })
-    // await axios.post('http://localhost:8080/runResult', { name: store.gdmlMarco.detector.fileName })
-  }
-}
+    store.specParams.name = response.data.runId
 
-async function killProcess() {
-  await axios.post('http://localhost:8080/killProcess')
-  cardTl.play()
-  simuInfoTl.reverse()
-  base3D.autoRotateCamera(false)
-  emits('simulationStop')
-  setTimeout(() => {
-    toast.value.showToast()
-  }, 300)
+    if (store.marco.runtimeInfo.enableTajectory) {
+      emits('simulationComplete', false)
+      await simuInfoTl.reverse()
+      await base3D.viewVrmlScene(`http://localhost:8080/file/vrml/${response.data.runId}.wrl`)
+      gdmlStructureList.splice(0, gdmlStructureList.length)
+    }
+    else {
+      emits('simulationComplete', true)
+      router.push({ path: '/overview', query: { fetchData: 1 } })
+    }
+  }
 }
 
 const setClip = () => {
@@ -362,7 +369,7 @@ const autoRotate = () => {
         </div>
       </div>
       <!-- Toast -->
-      <Toasts ref="toast" message="模拟已停止" left="1/3" />
+      <Toasts ref="toast" :success="true" message="模拟已停止" left="1/3" />
     </div>
     <!-- 右侧 -->
     <div w-60 flex flex-col>

@@ -862,7 +862,7 @@ const executeCalibrate = async () => {
       </div>
     </div>
     <!-- 提示框 -->
-    <Toasts ref="toast" message="已选取刻度点" ml="1/3" />
+    <Toasts ref="toast" :success="true" message="已选取刻度点" ml="1/3" />
   </div>
   <!-- 核素数据库 -->
   <div ref="nucTable" invisible op0 absolute text-xs w-90 h-90 flex flex-col z-50 border="~ card-item" bg-card rounded-md shadow="xl back">

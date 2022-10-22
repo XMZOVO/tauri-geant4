@@ -32,9 +32,11 @@ const executeSimulate = async () => {
   await navBarTl.reverse()
 }
 
-const simulationComplete = () => {
+const simulationComplete = async (nav: boolean) => {
   navBarTl.play()
-  navTabTl.to(navTab.value, { y: '100%', duration: 0.2 })
+  if (nav)
+    navTabTl.to(navTab.value, { y: '100%', duration: 0.2 })
+
   navTabTl.play()
 }
 

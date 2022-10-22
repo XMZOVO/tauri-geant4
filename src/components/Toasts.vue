@@ -2,9 +2,13 @@
 import { onMounted, ref } from 'vue'
 import gsap from 'gsap'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   message: string
-}>()
+  success: boolean
+}>(), {
+  message: '',
+  success: true,
+})
 const toastTl = gsap.timeline({ paused: true, defaults: { duration: 0.2 } })
 const Toast = ref(null)
 
@@ -30,7 +34,7 @@ defineExpose({
 
 <template>
   <div ref="Toast" absolute top="-20" h-15 w-80 p-5 flex items-center bg-card-item gap-2 border="~ card-item" shadow-lg rounded-md>
-    <div i-carbon-checkmark-filled text-green />
+    <div :class="success ? 'i-carbon-checkmark-filled text-green' : 'i-carbon-close-filled text-red'" />
     <div>{{ props.message }}</div>
   </div>
 </template>
