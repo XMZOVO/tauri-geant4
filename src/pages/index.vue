@@ -108,6 +108,8 @@ async function loadModelRenderSettings() {
   base3D.opacityChange(store.detectorOpacity)
   base3D.setRoughness(parseFloat(store.roughness))
   base3D.particlePositionChange(new Vector3(parseFloat(store.marco.particle.pos.x), parseFloat(store.marco.particle.pos.y), parseFloat(store.marco.particle.pos.z)))
+  base3D.gpsChange(store.marco.particle.type)
+  base3D.gpsVolumeChange(parseFloat(store.marco.particle.radius), parseFloat(store.marco.particle.halfZ))
   base3D.fitCameraToSelection(base3D.camera, base3D.controls, base3D.detectorGroup.children, 1.8)
 }
 
@@ -230,6 +232,14 @@ const viewVrmlScene = async (path: string) => {
   const blob = URL.createObjectURL(new Blob([imgContent.buffer]))
   base3D.viewVrmlScene(blob)
   gdmlStructureList.splice(0, gdmlStructureList.length)
+}
+
+const gpsChange = (type: string) => {
+  base3D.gpsChange(type)
+}
+
+const gpsVolumeChange = (radius: string, halfZ: string) => {
+  base3D.gpsVolumeChange(parseFloat(radius), parseFloat(halfZ))
 }
 
 const getUseTime = (startTime: number, endTime: number) => {
@@ -467,6 +477,8 @@ const autoRotate = () => {
               @view-vrml-scene="viewVrmlScene"
               @change-template="changeTemplate"
               @particle-position-change="particlePositionChange"
+              @gps-change="gpsChange"
+              @gps-volume-change="gpsVolumeChange"
             />
           </div>
         </div>

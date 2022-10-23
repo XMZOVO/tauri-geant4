@@ -7,7 +7,7 @@ const props = withDefaults(
     disabled?: boolean
   }>(),
   {
-    modelValue: '0',
+    modelValue: '',
     disabled: false,
   },
 )

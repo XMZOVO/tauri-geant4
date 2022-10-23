@@ -1,13 +1,13 @@
 import { readBinaryFile } from '@tauri-apps/api/fs'
-import type {
-  BufferGeometry,
-} from 'three'
+import type { BufferGeometry } from 'three'
 import {
   AmbientLight,
 
   AxesHelper,
+
   Box3,
   Color,
+  CylinderGeometry,
   DirectionalLight,
   DoubleSide,
   Group,
@@ -88,6 +88,8 @@ export default class Base3D {
     side: DoubleSide,
   })
 
+  pointMesh = new Mesh(new SphereGeometry(2, 20, 20), this.particleMaterial)
+  cylinderMesh = new Mesh(new CylinderGeometry(5, 5, 10, 20), this.particleMaterial)
   axesHelper!: AxesHelper
   dirLight!: DirectionalLight
   gdmlLoader = new GDMLLoader()
@@ -97,6 +99,7 @@ export default class Base3D {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
+    this.cylinderMesh.rotation.x = Math.PI / 2
   }
 
   async init() {
@@ -212,9 +215,9 @@ export default class Base3D {
   }
 
   initGPS() {
-    this.particle = new Mesh(new SphereGeometry(2, 20, 20), this.particleMaterial)
-    this.particle.position.set(0, 0, 50)
-    this.scene.add(this.particle)
+    this.pointMesh.position.set(0, 0, 50)
+    this.scene.add(this.pointMesh)
+    this.particle = this.pointMesh
   }
 
   initLight() {
@@ -418,5 +421,28 @@ export default class Base3D {
   highLightSDLogVolume(name: string) {
     if (this.detector[name])
       this.detector[name].material = this.sdLogMatertial
+  }
+
+  gpsChange(sourceType: string) {
+    switch (sourceType) {
+      case 'point':{
+        this.pointMesh.position.copy(this.particle.position)
+        this.scene.remove(this.cylinderMesh)
+        this.scene.add(this.pointMesh)
+        this.particle = this.pointMesh
+        break
+      }
+      case 'volume': {
+        this.cylinderMesh.position.copy(this.particle.position)
+        this.scene.remove(this.pointMesh)
+        this.scene.add(this.cylinderMesh)
+        this.particle = this.cylinderMesh
+        break
+      }
+    }
+  }
+
+  gpsVolumeChange(radius: number, halfZ: number) {
+    this.cylinderMesh.scale.set(radius / 5, halfZ / 5, radius / 5)
   }
 }

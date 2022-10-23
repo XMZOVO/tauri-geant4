@@ -34,6 +34,8 @@ interface Particle {
   pos: Pos
   dir: Pos
   type: string
+  radius: string
+  halfZ: string
 }
 
 interface RuntimeInfo {
@@ -115,6 +117,8 @@ export const useStore = defineStore('stores', {
         pos: { x: '0.0', y: '0.0', z: '50.0' },
         dir: { x: '0.0', y: '0.0', z: '-1.0' },
         type: 'point',
+        radius: '5',
+        halfZ: '5',
       },
       runtimeInfo: {
         trackingVb: '0',
