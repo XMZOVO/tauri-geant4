@@ -250,6 +250,10 @@ const getUseTime = (startTime: number, endTime: number) => {
   return `${hour}h ${minute}m ${second}s`
 }
 
+const enableRealtimeInfoChange = (flag: boolean) => {
+  flag ? ws.onmessage = websocketOnMessage : ws.onmessage = null
+}
+
 const executeSimulate = async () => {
   duringSimulationInfo.splice(0, duringSimulationInfo.length) // 清空runtime信息
   cardTl.reverse()
@@ -479,6 +483,7 @@ const autoRotate = () => {
               @particle-position-change="particlePositionChange"
               @gps-change="gpsChange"
               @gps-volume-change="gpsVolumeChange"
+              @enable-realtime-info-change="enableRealtimeInfoChange"
             />
           </div>
         </div>

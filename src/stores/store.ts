@@ -166,6 +166,7 @@ export const useStore = defineStore('stores', {
     lineSegmentsPerCircle: '200',
     currentSceneUrl: '',
     structureList: [] as string[],
+    enableRealtimeInfo: true,
 
     selectedChart: 0,
     calValue: [],

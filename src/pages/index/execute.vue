@@ -4,12 +4,16 @@ import UCheck from '~/components/ui/UCheck.vue'
 import { useStore } from '~/stores/store'
 import UInput from '~/components/ui/UInput.vue'
 
-const emits = defineEmits(['executeSimulate'])
+const emits = defineEmits(['executeSimulate', 'enableRealtimeInfoChange'])
 
 const store = useStore()
 
 const executeSimulate = () => {
   emits('executeSimulate')
+}
+
+const enableRealtimeInfoChange = (value: boolean) => {
+  emits('enableRealtimeInfoChange', value)
 }
 </script>
 
@@ -32,7 +36,7 @@ const executeSimulate = () => {
               实时输出
             </div>
           </div>
-          <UCheck />
+          <UCheck v-model="store.enableRealtimeInfo" @update:model-value="enableRealtimeInfoChange" />
         </div>
       </div>
     </Collapse>
