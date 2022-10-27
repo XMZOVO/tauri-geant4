@@ -179,6 +179,8 @@ export const useStore = defineStore('stores', {
     clipMod: false,
     clipPanes: ['0', '0', '0'],
     autoRotate: false,
+
+    selectedTab: 0,
   }),
   actions: {
     setNaISDVolName() {

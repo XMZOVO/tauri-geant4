@@ -52,8 +52,7 @@ onClickOutside(specDom, () => {
 })
 
 onMounted(async () => {
-  const res = await axios.get('http://localhost:8080/resultDb')
-  resultListBackup = resultList = res.data.data
+  await fetchResut()
   resultScene = new ResultScene(sceneDom.value)
   resultScene.init()
 
@@ -95,7 +94,7 @@ const searchResult = (value: string) => {
 const viewResultScene = async (index: number) => {
   if (resultList[index].resultScene) {
     await sceneDivTl.play()
-    resultScene.importScene(`http://localhost:8080/file/vrml/${resultList[index].runId}.wrl`)
+    resultScene.importScene(`http://localhost:8080/file/vrmlResult/${resultList[index].runId}.wrl`)
   }
   else {
     toast.value.showToast()
@@ -256,6 +255,16 @@ function createFWHMChart() {
     ],
   })
 }
+
+async function fetchResut() {
+  const res = await axios.get('http://localhost:8080/resultDb')
+  resultListBackup = resultList = res.data.data
+}
+
+async function deleteResult(index: number) {
+  await axios.post(`http://localhost:8080/resultDb/${resultList[index].runId}`)
+  await fetchResut()
+}
 </script>
 
 <template>
@@ -292,14 +301,16 @@ function createFWHMChart() {
           </div>
         </div>
         <!-- 表身 -->
-        <div v-for="item, index in resultList" :key="item.id" flex flex-col overflow-hidden>
-          <CollapseResult
-            ref="result"
-            :s-id="item.id"
-            :index="index" :length="resultList.length" :gdml-name="item.gdmlName"
-            :description="item.description" :title="item.title" :create-time="item.createTime"
-            @view-result-scene="viewResultScene" @fetch-spec="fetchSpec"
-          />
+        <div flex flex-col>
+          <div v-for="item, index in resultList" :key="item.id" flex flex-col overflow-hidden>
+            <CollapseResult
+              ref="result"
+              :s-id="item.id"
+              :index="index" :length="resultList.length" :gdml-name="item.gdmlName"
+              :description="item.description" :title="item.title" :create-time="item.createTime"
+              @view-result-scene="viewResultScene" @fetch-spec="fetchSpec" @delete-result="deleteResult"
+            />
+          </div>
         </div>
       </div>
     </div>

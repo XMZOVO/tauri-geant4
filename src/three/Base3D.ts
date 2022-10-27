@@ -413,7 +413,7 @@ export default class Base3D {
 
     camera.position.copy(controls.target).sub(direction)
 
-    gsap.from(this.camera.position, { x: camera.position.x * 3, y: camera.position.y * 3, z: -camera.position.z, duration: 1.3, ease: 'circ' })
+    gsap.from(this.camera.position, { x: camera.position.x * 3, y: camera.position.y * 3, z: -camera.position.z, duration: 1, ease: 'circ' })
 
     controls.update()
   }

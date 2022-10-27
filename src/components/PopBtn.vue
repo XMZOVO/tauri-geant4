@@ -54,6 +54,7 @@ onClickOutside(popMenu, async () => {
 
 const showPopMenu = () => {
   tipTl.pause(0)
+  tipTl.kill()
   if (props.showMenu === '1')
     menuTl.play()
 }
@@ -80,7 +81,7 @@ const value = useVModel(props, 'modelValue', emits)
     <div ref="popBtn" w-9 h-9 hover="bg-card-item" flex items-center justify-center rounded-md z-50 @click="showPopMenu" @mouseover="hoverBtn" @mouseleave="leaveBtn">
       <div :class="[value ? 'text-green' : 'text-txt', icon]" w-6 h-6 />
     </div>
-    <div ref="popMenu" border="card-item ~" rounded-md p-0 invisible absolute w-30 h-40 bottom-11 bg-card flex flex-col>
+    <div ref="popMenu" border="card-item ~" rounded-md p-0 invisible absolute w-30 h-40 bottom-10 bg-card flex flex-col>
       <slot />
     </div>
     <div ref="popTip" w-15 flex items-center justify-center h-5 text-xs bg-input bottom-11 absolute rounded-sm>

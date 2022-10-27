@@ -18,6 +18,7 @@ const props = defineProps<{
 const emits = defineEmits<{
   (event: 'viewResultScene', ...args: any[]): void
   (event: 'fetchSpec', ...args: any[]): void
+  (event: 'deleteResult', ...args: any[]): void
 }>()
 
 const { x, y } = useMouse()
@@ -60,7 +61,7 @@ const formatTime = (time: string) => {
 }
 
 const deleteResult = (index: number) => {
-
+  emits('deleteResult', index)
 }
 
 const viewResultScene = () => {
@@ -118,8 +119,8 @@ const showSourceInfo = async () => {
     </div>
   </div>
   <div ref="resultDetail" class="resultDetail" h-0 bg-back w-full>
-    <div flex items-center p-5 text-sm h-full overflow-hidden>
-      <div flex flex-col flex-1>
+    <div flex items-center justify-around p-5 text-sm h-full overflow-hidden>
+      <div flex flex-col>
         <div font-bold>
           备注信息
         </div>
@@ -127,29 +128,29 @@ const showSourceInfo = async () => {
           {{ description }}
         </div>
       </div>
-      <div flex flex-col flex-1>
+      <div flex flex-col>
         <div font-bold>
           能谱
         </div>
         <a op80 hover="op100" @click="fetchSpec">查看</a>
       </div>
-      <div flex flex-col flex-1>
+      <div flex flex-col>
         <div font-bold>
           展宽谱
         </div>
         <a op80 hover="op100" @click="fetchFwhmSpec">查看</a>
       </div>
-      <div ref="sourceBtn" flex flex-col flex-1>
+      <div ref="sourceBtn" flex flex-col>
         <div font-bold>
           粒子源信息
         </div>
         <a op80 hover="op100" @click="showSourceInfo">查看</a>
       </div>
-      <div flex flex-col flex-1>
+      <div flex flex-col>
         <div font-bold>
           模拟结果场景
         </div>
-        <a op80 hover="op100" @click="viewResultScene">查看</a>
+        <a w-10 op80 hover="op100" @click="viewResultScene">查看</a>
       </div>
     </div>
   </div>

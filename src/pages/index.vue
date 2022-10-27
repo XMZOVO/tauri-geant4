@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref, watchEffect } from 'vue'
-import { useRouter } from 'vue-router'
+import { onBeforeRouteUpdate, useRouter } from 'vue-router'
 import gsap from 'gsap'
 import { Vector3 } from 'three'
 import axios from 'axios'
@@ -75,7 +75,8 @@ onUnmounted(() => {
 
   cancelAnimationFrame(base3D.timer)
 
-  ws.close()
+  if (ws)
+    ws.close()
 })
 
 function websocketOnMessage(e: any) {
@@ -293,7 +294,7 @@ const executeSimulate = async () => {
     if (store.marco.runtimeInfo.enableTajectory) {
       emits('simulationComplete', false)
       await simuInfoTl.reverse()
-      await base3D.viewVrmlScene(`http://localhost:8080/file/vrml/${response.data.runId}.wrl`)
+      await base3D.viewVrmlScene(`http://localhost:8080/file/vrmlResult/${response.data.runId}.wrl`)
       gdmlStructureList.splice(0, gdmlStructureList.length)
     }
     else {
@@ -322,7 +323,9 @@ const autoRotate = () => {
     <!-- 中部 -->
     <div flex-grow relative justify-center flex>
       <!-- 渲染窗口 -->
-      <canvas ref="ThreeDom" class="canvas" />
+      <div w-full h-full>
+        <canvas ref="ThreeDom" class="canvas" />
+      </div>
       <!-- 运行时输出信息 -->
       <div
         ref="displaySimuInfoCard"
@@ -338,8 +341,8 @@ const autoRotate = () => {
       </div>
 
       <!-- interactiveBar -->
-      <div ref="interactiveBar" absolute bottom="3" w-full px-20 select-none>
-        <div flex items-center justify-between px-10 bg-card-stripDark w-full h-12 p-3 rounded-full border="card-item ~" shadow-xl>
+      <div ref="interactiveBar" absolute bottom="2" w-full px-60 select-none>
+        <div flex items-center justify-between px-10 bg-card-stripDark w-full h-10 rounded-full border="card-item ~" shadow-xl>
           <PopBtn show-menu="1" tip="视图" icon="i-lucide-view">
             <div flex flex-col text-sm w-full h-full items-center>
               <div flex flex-1 items-center gap-4 hover="bg-input" rounded-md p-2 py-1 w-full justify-start />
@@ -378,8 +381,6 @@ const autoRotate = () => {
 
             show-menu="0" tip="正交视角" icon="i-ph-perspective"
           />
-          <PopBtn show-menu="0" tip="info" icon="i-iconoir-3d-add-hole" />
-          <PopBtn show-menu="0" tip="info" icon="i-iconoir-3d-add-hole" />
         </div>
       </div>
       <!-- Toast -->
